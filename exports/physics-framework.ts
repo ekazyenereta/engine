@@ -22,3 +22,5 @@ cc.BoxColliderComponent = BoxColliderComponent;
 cc.SphereColliderComponent = SphereColliderComponent;
 cc.RigidBodyComponent = RigidBodyComponent;
 cc.PhysicMaterial = PhysicMaterial;
+
+import '../cocos/physics/debug/physics-debugger';
