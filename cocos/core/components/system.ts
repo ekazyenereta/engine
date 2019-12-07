@@ -28,27 +28,42 @@
  */
 
 import { ISchedulable } from "../scheduler";
+import { Timer } from "./timer";
 
 export default class System implements ISchedulable {
     protected _id = '';
     protected _priority = 0;
     protected _executeInEditMode = false;
+    protected _isSharedTimer = true;
+    protected _timer!: Timer;
 
-    set priority (value:number) {
+    set priority (value: number) {
         this._priority = value;
     }
-    get priority ():number {
+    get priority (): number {
         return this._priority;
     }
 
-    set id (id:string) {
+    set id (id: string) {
         this._id = id;
     }
-    get id ():string {
+    get id (): string {
         return this._id;
     }
 
-    public static sortByPriority (a:System, b:System) {
+    get timer (): Timer {
+        if (!this._isSharedTimer) {
+            this._timer = this._timer.clone(this.id);
+            this._isSharedTimer = false;
+        }
+        return this._timer;
+    }
+
+    get sharedTimer (): Timer {
+        return this._timer;
+    }
+
+    public static sortByPriority (a: System, b: System) {
         if (a._priority < b._priority) {
             return 1;
         }
@@ -60,7 +75,12 @@ export default class System implements ISchedulable {
         }
     }
 
-    init () {}
-    update (dt: number) {}
-    postUpdate (dt: number) {}
+    protected constructor () { };
+
+    init () {
+        this._timer = Timer.default;
+    }
+
+    update (dt: number) { }
+    postUpdate (dt: number) { }
 }

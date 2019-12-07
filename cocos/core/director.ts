@@ -40,6 +40,7 @@ import ComponentScheduler from './scene-graph/component-scheduler';
 import NodeActivator from './scene-graph/node-activator';
 import { Scheduler } from './scheduler';
 import { js } from './utils';
+import { Timer } from './components/timer';
 
 // const ComponentScheduler = require('./component-scheduler');
 // const NodeActivator = require('./node-activator');
@@ -262,9 +263,9 @@ export class Director extends EventTarget {
     private _root: Root | null;
     private _loadingScene: string;
     private _scene: Scene | null;
-    private _totalFrames: number;
-    private _lastUpdate: number;
-    private _deltaTime: number;
+    // private _totalFrames: number;
+    // private _lastUpdate: number;
+    // private _deltaTime: number;
     private _scheduler: Scheduler;
     private _systems: System[];
 
@@ -284,11 +285,6 @@ export class Director extends EventTarget {
         this._loadingScene = '';
         this._scene = null;
 
-        // FPS
-        this._totalFrames = 0;
-        this._lastUpdate = 0;
-        this._deltaTime = 0.0;
-
         // Scheduler for user registration update
         this._scheduler = new Scheduler();
         // Scheduler for life-cycle methods in component
@@ -298,9 +294,8 @@ export class Director extends EventTarget {
 
         this._systems = [];
 
-        const self = this;
-        cc.game.on(Game.EVENT_SHOW, () => {
-            self._lastUpdate = performance.now();
+        cc.game.on(Game.EVENT_SHOW, () => {           
+            Timer.resume();
         });
 
         cc.game.once(Game.EVENT_RENDERER_INITED, this.initOnRenererInited, this);
@@ -318,8 +313,7 @@ export class Director extends EventTarget {
     }
 
     public initOnEngineInited () {
-        this._totalFrames = 0;
-        this._lastUpdate = performance.now();
+        Timer.init();
         this._paused = false;
         this._purgeDirectorInNextLoop = false;
 
@@ -335,20 +329,6 @@ export class Director extends EventTarget {
         this.registerSystem(Scheduler.ID, this._scheduler, 200);
 
         this.emit(Director.EVENT_INIT);
-    }
-
-    /**
-     * calculates delta time since last time it was called
-     */
-    public calculateDeltaTime () {
-        const now = performance.now();
-
-        this._deltaTime = (now - this._lastUpdate) / 1000;
-        if (CC_DEBUG && (this._deltaTime > 1)) {
-            this._deltaTime = 1 / 60.0;
-        }
-
-        this._lastUpdate = now;
     }
 
     /**
@@ -814,14 +794,8 @@ export class Director extends EventTarget {
         if (!this._paused) {
             return;
         }
-
-        this._lastUpdate = performance.now();
-        if (!this._lastUpdate) {
-            cc.logID(1200);
-        }
-
         this._paused = false;
-        this._deltaTime = 0;
+        Timer.resume();
     }
 
     /**
@@ -911,7 +885,7 @@ export class Director extends EventTarget {
      * @zh 获取上一帧的增量时间。
      */
     public getDeltaTime () {
-        return this._deltaTime;
+        return Timer.default.deltaTime;
     }
 
     /**
@@ -919,7 +893,7 @@ export class Director extends EventTarget {
      * @zh 获取当前帧的时间。
      */
     public getCurrentTime () {
-        return this._lastUpdate;
+        return Timer.default.currentTime;
     }
 
     /**
@@ -927,7 +901,7 @@ export class Director extends EventTarget {
      * @zh 获取 director 启动以来游戏运行的总帧数。
      */
     public getTotalFrames () {
-        return this._totalFrames;
+        return Timer.default.totalFrames;
     }
 
     /**
@@ -1001,7 +975,7 @@ export class Director extends EventTarget {
      */
     public startAnimation () {
         this.invalid = false;
-        this._lastUpdate = performance.now();
+        Timer.resume();
     }
 
     /**
@@ -1023,8 +997,8 @@ export class Director extends EventTarget {
         }
         else if (!this.invalid) {
             // calculate "global" dt
-            this.calculateDeltaTime();
-            const dt = this._deltaTime;
+            Timer.update();
+            const dt = Timer.default.deltaTime;
 
             // Update
             if (!this._paused) {
@@ -1043,7 +1017,6 @@ export class Director extends EventTarget {
                 this.emit(Director.EVENT_AFTER_UPDATE);
                 // Destroy entities that have been removed recently
                 CCObject._deferredDestroy();
-
                 // Post update systems
                 for (let i = 0; i < this._systems.length; ++i) {
                     this._systems[i].postUpdate(dt);
@@ -1051,14 +1024,13 @@ export class Director extends EventTarget {
             }
 
             this.emit(Director.EVENT_BEFORE_DRAW);
-            this._root!.frameMove(this._deltaTime);
+            this._root!.frameMove(dt);
             // Present current frame
             this._root!.device.present();
             this.emit(Director.EVENT_AFTER_DRAW);
 
             eventManager.frameUpdateListeners();
             Node.bookOfChange.clear();
-            this._totalFrames++;
         }
     }
 }
