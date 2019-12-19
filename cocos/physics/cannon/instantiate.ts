@@ -3,6 +3,7 @@ import { CannonRigidBody } from './cannon-rigid-body';
 import { CannonWorld } from './cannon-world';
 import { CannonBoxShape } from './shapes/cannon-box-shape';
 import { CannonSphereShape } from './shapes/cannon-sphere-shape';
+import { CannonCapsuleShape } from './shapes/cannon-capsule-shape';
 
 if (CC_PHYSICS_CANNON) {
     instantiate(
@@ -10,5 +11,6 @@ if (CC_PHYSICS_CANNON) {
         CannonSphereShape,
         CannonRigidBody,
         CannonWorld,
-        );
+        CannonCapsuleShape
+    );
 }

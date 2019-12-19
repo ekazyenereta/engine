@@ -7,6 +7,7 @@ import { CannonRigidBody } from '../cannon/cannon-rigid-body';
 import { CannonWorld } from '../cannon/cannon-world';
 import { CannonBoxShape } from '../cannon/shapes/cannon-box-shape';
 import { CannonSphereShape } from '../cannon/shapes/cannon-sphere-shape';
+import { CannonCapsuleShape } from '../cannon/shapes/cannon-capsule-shape';
 
 // built-in
 import { BuiltInWorld } from '../cocos/builtin-world';
@@ -17,14 +18,18 @@ export let BoxShape: typeof CannonBoxShape | typeof BuiltinBoxShape;
 export let SphereShape: typeof CannonSphereShape | typeof BuiltinSphereShape;
 export let RigidBody: typeof CannonRigidBody | null;
 export let PhysicsWorld: typeof CannonWorld | typeof BuiltInWorld;
+export let CapsuleShape: any;
 
 export function instantiate (
     boxShape: typeof BoxShape,
     sphereShape: typeof SphereShape,
     body: typeof RigidBody,
-    world: typeof PhysicsWorld) {
+    world: typeof PhysicsWorld,
+    capsuleShape?: typeof CannonCapsuleShape
+) {
     BoxShape = boxShape;
     SphereShape = sphereShape;
     RigidBody = body;
     PhysicsWorld = world;
+    CapsuleShape = capsuleShape;
 }
