@@ -44,6 +44,8 @@ export class CapsuleColliderComponent extends ColliderComponent {
     }
 
     public set radius (value) {
+        if (value < 0) value = 0;
+
         this._radius = value;
         if (!CC_EDITOR) {
             this.capsuleShape.radius = this._radius;
@@ -54,7 +56,7 @@ export class CapsuleColliderComponent extends ColliderComponent {
      * @en
      * Get or set the capsule body is at the corresponding axial height, in local space.
      * @zh
-     * 胶囊体在相应轴向的高度。
+     * 胶囊体在相应轴向的高度，最小值为两倍的 radius。
      */
     @property({ tooltip: '胶囊体在相应轴向的高度' })
     public get height () {
@@ -62,6 +64,10 @@ export class CapsuleColliderComponent extends ColliderComponent {
     }
 
     public set height (value) {
+        if (value < this._radius * 2) {
+            value = this._radius * 2
+        }
+
         this._height = value;
         if (!CC_EDITOR) {
             this.capsuleShape.height = this._height;

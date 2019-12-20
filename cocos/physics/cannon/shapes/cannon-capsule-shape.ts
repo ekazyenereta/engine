@@ -3,10 +3,10 @@ import { Vec3 } from '../../../core/math';
 import { commitShapeUpdates } from '../cannon-util';
 import { CannonShape } from './cannon-shape';
 import { ICapsuleShape } from '../../spec/i-physics-shape';
-import { CapsuleColliderComponent, ColliderComponent } from '../../../../exports/physics-framework';
+import { CapsuleColliderComponent } from '../../../../exports/physics-framework';
 import { ECapsuleDirection } from '../../framework/components/collider/capsule-collider-component';
-import { maxComponent } from '../../framework/util';
-import { capsule } from '../../../core/primitive';
+import { absMaxComponent } from '../../framework/util';
+import { IVec3Like } from '../../../core/math/type-define';
 
 export class CannonCapsuleShape extends CannonShape implements ICapsuleShape {
 
@@ -14,21 +14,77 @@ export class CannonCapsuleShape extends CannonShape implements ICapsuleShape {
         return this.collider as CapsuleColliderComponent;
     }
 
-    public get capsule () {
-        return this._shape as CANNON.ConvexPolyhedron;
+    public get cylinder () {
+        return this._shape as CANNON.Cylinder;
     }
+
+    public get sphereTop () {
+        return this._sphereTop as CANNON.Sphere;
+    }
+
+    public get sphereBottom () {
+        return this._sphereBottom as CANNON.Sphere;
+    }
+
+    protected _sphereTop: CANNON.Shape;
+    protected _sphereBottom: CANNON.Shape;
+
+    readonly offsetTop: CANNON.Vec3;
+    readonly offsetBottom: CANNON.Vec3;
 
     constructor (radius: number, height: number, direction = ECapsuleDirection.Y_AXIS) {
         super();
-        this._shape = new CANNON.ConvexPolyhedron();
+        this._shape = new CANNON.Cylinder(radius, radius, height, 16);
+        this._sphereTop = new CANNON.Sphere(radius);
+        this._sphereBottom = new CANNON.Sphere(radius);
+
+        this.offsetTop = new CANNON.Vec3();
+        this.offsetBottom = new CANNON.Vec3();
+
+        this._isCompound = true;
+        this._compoundStruct = {
+            shapes: [this._shape, this._sphereTop, this._sphereBottom],
+            offsets: [this.offset, this.offsetTop, this.offsetBottom],
+            orients: [this.orient, this.orient, this.orient]
+        }
     }
 
     set radius (v: number) {
-        this.resetCapsule();
+        const ws = this.collider.node.worldScale;
+        const max = absMaxComponent(ws);
+        const wr = v * Math.abs(max);
+        if (wr == this.sphereTop.radius) return;
+
+        this.sphereTop.radius = wr;
+        this.sphereTop.updateBoundingSphereRadius();
+        this.sphereBottom.radius = wr;
+        this.sphereBottom.updateBoundingSphereRadius();
+
+        const doubleWR = wr * 2;
+        let wh = this.capsuleCollider.height * Math.abs(ws.y);
+        let offset = wh - doubleWR;
+        if (offset < 0) offset = 0;
+        reConstructCylinder(this.cylinder, wr, wr, offset, 16);
+
+        if (this._index != -1) {
+            commitShapeUpdates(this._body);
+        }
     }
 
     set height (v: number) {
-        this.resetCapsule();
+        const ws = this._collider.node.worldScale;
+        const max = absMaxComponent(ws);
+        const wr = this.capsuleCollider.radius * Math.abs(max);
+
+        const doubleWR = wr * 2;
+        let wh = v * Math.abs(ws.y);
+        let offset = wh - doubleWR;
+        if (offset < 0) offset = 0;
+        reConstructCylinder(this.cylinder, wr, wr, offset, 20);
+
+        if (this._index != -1) {
+            commitShapeUpdates(this._body);
+        }
     }
 
     /** TODO:IMPL */
@@ -38,208 +94,177 @@ export class CannonCapsuleShape extends CannonShape implements ICapsuleShape {
 
     onLoad () {
         super.onLoad();
-        this.resetCapsule();
+        this.radius = this.capsuleCollider.radius;
     }
 
-    setScale (scale: Vec3): void {
+    setScale (scale: IVec3Like): void {
         super.setScale(scale);
-        this.resetCapsule();
+        this.radius = this.capsuleCollider.radius;
     }
 
-    /** TODO:FIX */
-    private generateCapsule (out: CANNON.ConvexPolyhedron, r: number, h: number, dir = ECapsuleDirection.Y_AXIS) {
-        const radiusTop = r;
-        const radiusBottom = r;
-        const height = h;
+    setCompoundCenter (center: IVec3Like) {
+        const lpos = this.offset as IVec3Like;
+        const ws = this._collider.node.worldScale;
+        Vec3.copy(lpos, center);
+        Vec3.multiply(lpos, lpos, ws);
 
-        const torsoHeight = height - radiusTop - radiusBottom;
-        const sides = 32;
-        const heightSegments = 32;
-        const bottomProp = radiusBottom / height;
-        const torProp = torsoHeight / height;
-        const topProp = radiusTop / height;
-        const bottomSegments = Math.floor(heightSegments * bottomProp);
-        const topSegments = Math.floor(heightSegments * topProp);
-        const torSegments = Math.floor(heightSegments * torProp);
-        const topOffset = torsoHeight + radiusBottom - height / 2;
-        const torOffset = radiusBottom - height / 2;
-        const bottomOffset = radiusBottom - height / 2;
-
-        const arc = 2.0 * Math.PI;
-
-        // calculate vertex count
-        const positions = out.vertices;
-        const indices = out.faces;
-
-        let index = 0;
-        let faceIndex = 0;
-        const indexArray: number[][] = [];
-
-        for (let lat = 0; lat <= bottomSegments; ++lat) {
-            const theta = lat * Math.PI / bottomSegments / 2;
-            const sinTheta = Math.sin(theta);
-            const cosTheta = -Math.cos(theta);
-
-            for (let lon = 0; lon <= sides; ++lon) {
-                const phi = lon * 2 * Math.PI / sides - Math.PI / 2.0;
-                const sinPhi = Math.sin(phi);
-                const cosPhi = Math.cos(phi);
-
-                const x = sinPhi * sinTheta;
-                const y = cosTheta;
-                const z = cosPhi * sinTheta;
-
-                if (positions[index] == null) {
-                    positions[index] = new CANNON.Vec3();
-                }
-                positions[index].x = x * radiusBottom;
-                positions[index].y = y * radiusBottom + bottomOffset;
-                positions[index].z = z * radiusBottom;
-
-                if ((lat < bottomSegments) && (lon < sides)) {
-                    const seg1 = sides + 1;
-                    const a = seg1 * lat + lon;
-                    const b = seg1 * (lat + 1) + lon;
-                    const c = seg1 * (lat + 1) + lon + 1;
-                    const d = seg1 * lat + lon + 1;
-
-                    const i0 = Math.floor(a / 3) + a % 3;
-                    const i1 = Math.floor(b / 3) + b % 3;
-                    const i2 = Math.floor(c / 3) + c % 3;
-                    const i3 = Math.floor(d / 3) + d % 3;
-                    indices[faceIndex++] = [i0, i3, i1];
-                    indices[faceIndex++] = [i3, i2, i1];
-                }
-
-                ++index;
-            }
-        }
-        // generate positions
-        for (let y = 0; y <= torSegments; y++) {
-
-            const indexRow: number[] = [];
-            const lat = y / torSegments;
-            const radius = lat * (radiusTop - radiusBottom) + radiusBottom;
-
-            for (let x = 0; x <= sides; ++x) {
-                const u = x / sides;
-                const v = lat * torProp + bottomProp;
-                const theta = u * arc - (arc / 4);
-
-                const sinTheta = Math.sin(theta);
-                const cosTheta = Math.cos(theta);
-
-                // vertex
-                if (positions[index] == null) {
-                    positions[index] = new CANNON.Vec3();
-                }
-                positions[index].x = radius * sinTheta;
-                positions[index].y = lat * torsoHeight + torOffset;
-                positions[index].z = radius * cosTheta;
-
-                // save index of vertex in respective row
-                indexRow.push(index);
-
-                // increase index
-                ++index;
-            }
-
-            // now save positions of the row in our index array
-            indexArray.push(indexRow);
-        }
-
-        // generate indices
-        for (let y = 0; y < torSegments; ++y) {
-            for (let x = 0; x < sides; ++x) {
-                // we use the index array to access the correct indices
-                const i1 = indexArray[y][x];
-                const i2 = indexArray[y + 1][x];
-                const i3 = indexArray[y + 1][x + 1];
-                const i4 = indexArray[y][x + 1];
-
-                const a = Math.floor(i1 / 3) + i1 % 3;
-                const b = Math.floor(i2 / 3) + i2 % 3;
-                const c = Math.floor(i3 / 3) + i3 % 3;
-                const d = Math.floor(i4 / 3) + i4 % 3;
-                indices[faceIndex++] = [a, d, b];
-                indices[faceIndex++] = [d, c, b];
-            }
-        }
-        for (let lat = 0; lat <= topSegments; ++lat) {
-            const theta = lat * Math.PI / topSegments / 2 + Math.PI / 2;
-            const sinTheta = Math.sin(theta);
-            const cosTheta = -Math.cos(theta);
-
-            for (let lon = 0; lon <= sides; ++lon) {
-                const phi = lon * 2 * Math.PI / sides - Math.PI / 2.0;
-                const sinPhi = Math.sin(phi);
-                const cosPhi = Math.cos(phi);
-
-                const x = sinPhi * sinTheta;
-                const y = cosTheta;
-                const z = cosPhi * sinTheta;
-
-                if (positions[index] == null) {
-                    positions[index] = new CANNON.Vec3();
-                }
-                positions[index].x = x * radiusTop;
-                positions[index].y = y * radiusTop + topOffset;
-                positions[index].z = z * radiusTop;
-
-                if ((lat < topSegments) && (lon < sides)) {
-                    const seg1 = sides + 1;
-                    const a = seg1 * lat + lon + indexArray[torSegments][sides] + 1;
-                    const b = seg1 * (lat + 1) + lon + indexArray[torSegments][sides] + 1;
-                    const c = seg1 * (lat + 1) + lon + 1 + indexArray[torSegments][sides] + 1;
-                    const d = seg1 * lat + lon + 1 + indexArray[torSegments][sides] + 1;
-
-                    const i0 = Math.floor(a / 3) + a % 3;
-                    const i1 = Math.floor(b / 3) + b % 3;
-                    const i2 = Math.floor(c / 3) + c % 3;
-                    const i3 = Math.floor(d / 3) + d % 3;
-                    indices[faceIndex++] = [i0, i3, i1];
-                    indices[faceIndex++] = [i3, i2, i1];
-                }
-            }
-        }
-
-        positions.length = index;
-        indices.length = faceIndex;
-    }
-
-    private resetCapsule () {
-        const max = maxComponent(this.collider.node.worldScale);
-        const radius = this.capsuleCollider.radius * Math.abs(max);
-        const height = this.capsuleCollider.height;
-
-        // this.generateCapsule(this.capsule, radius, height);
-        {
-            const mesh = capsule(radius, radius, height);
-            const positions: number[] = mesh.positions;
-            const indices: number[] = mesh.indices;
-
-            let vi = 0;
-            for (let i = 0; i < positions.length; i += 3) {
-                this.capsule.vertices[vi] = new CANNON.Vec3(positions[i], positions[i + 1], positions[i + 2]);
-                vi++;
-            }
-            this.capsule.vertices.length = vi;
-
-            let fi = 0;
-            for (let i = 0; i < indices.length; i += 3) {
-                this.capsule.faces[fi] = [indices[i], indices[i + 1], indices[i + 2]];
-                fi++;
-            }
-            this.capsule.faces.length = fi;
-        }
-
-        this.capsule.computeNormals();
-        this.capsule.worldVerticesNeedsUpdate = true;
-        this.capsule.computeEdges();
-        this.capsule.updateBoundingSphereRadius();
+        const max = absMaxComponent(ws);
+        const wr = this.capsuleCollider.radius * Math.abs(max);
+        const doubleWR = wr * 2;
+        let wh = this.capsuleCollider.height * Math.abs(ws.y)
+        let halfOffset = (wh - doubleWR) / 2;
+        if (halfOffset < 0) halfOffset = 0;
+        this.offsetTop.set(lpos.x, lpos.y + halfOffset, lpos.z);
+        this.offsetBottom.set(lpos.x, lpos.y - halfOffset, lpos.z);
 
         if (this._index >= 0) {
             commitShapeUpdates(this._body);
         }
     }
+}
+
+
+function reConstructCylinder (out: CANNON.Cylinder, radiusTop: number, radiusBottom: number, height: number, numSegments = 16) {
+    const N = numSegments;
+
+    const verts: CANNON.Vec3[] = out.vertices;
+    const axes: CANNON.Vec3[] = out.uniqueAxes;
+
+    const faces: number[][] = [];
+    const cos = Math.cos;
+    const sin = Math.sin;
+
+    // let ai = 0;
+    // let vi = 0;
+    // let tmpVec3: CANNON.Vec3;
+    // // First bottom point
+    // if (verts[vi] == null) {
+    //     tmpVec3 = verts[vi] = new CANNON.Vec3();
+    // } else {
+    //     tmpVec3 = verts[vi];
+    // }
+    // tmpVec3.set(radiusBottom * cos(0), radiusBottom * sin(0), -height * 0.5);
+    // vi++;
+
+    // bottomface.push(0);
+
+    // // First top point        
+    // if (verts[vi] == null) {
+    //     tmpVec3 = verts[vi] = new CANNON.Vec3();
+    // } else {
+    //     tmpVec3 = verts[vi];
+    // }
+    // tmpVec3.set(radiusTop * cos(0), radiusTop * sin(0), height * 0.5);
+    // vi++;
+
+    // topface.push(1);
+
+    // for (var i = 0; i < N; i++) {
+    //     var theta = 2 * Math.PI / N * (i + 1);
+    //     var thetaN = 2 * Math.PI / N * (i + 0.5);
+    //     if (i < N - 1) {
+    //         // Bottom
+    //         if (verts[vi] == null) {
+    //             tmpVec3 = verts[vi] = new CANNON.Vec3();
+    //         } else {
+    //             tmpVec3 = verts[vi];
+    //         }
+    //         tmpVec3.set(radiusBottom * cos(theta), radiusBottom * sin(theta), -height * 0.5);
+    //         vi++;
+
+    //         bottomface.push(2 * i + 2);
+
+    //         // Top
+    //         if (verts[vi] == null) {
+    //             tmpVec3 = verts[vi] = new CANNON.Vec3();
+    //         } else {
+    //             tmpVec3 = verts[vi];
+    //         }
+    //         tmpVec3.set(radiusTop * cos(theta), radiusTop * sin(theta), height * 0.5);
+    //         vi++;
+
+    //         topface.push(2 * i + 3);
+
+    //         // Face
+    //         faces.push([2 * i + 2, 2 * i + 3, 2 * i + 1, 2 * i]);
+    //     } else {
+    //         faces.push([0, 1, 2 * i + 1, 2 * i]); // Connect
+    //     }
+
+    //     // Axis: we can cut off half of them if we have even number of segments
+    //     if (N % 2 === 1 || i < N / 2) {
+    //         if (axes[ai] == null) {
+    //             tmpVec3 = axes[ai] = new CANNON.Vec3();
+    //         } else {
+    //             tmpVec3 = axes[ai];
+    //         }
+    //         tmpVec3.set(cos(thetaN), sin(thetaN), 0);
+    //         ai++;
+    //     }
+    // }
+    // faces.push(topface);
+
+    // if (axes[ai] == null) {
+    //     tmpVec3 = axes[ai] = new CANNON.Vec3();
+    // } else {
+    //     tmpVec3 = axes[ai];
+    // }
+    // tmpVec3.set(0, 0, 1);
+    // ai++;
+
+    // // Reorder bottom face
+    // var temp: number[] = [];
+    // for (var i = 0; i < bottomface.length; i++) {
+    //     temp.push(bottomface[bottomface.length - i - 1]);
+    // }
+    // faces.push(temp);
+
+    var halfH = height / 2;
+    var tf = [0];
+    var bf = [1];
+    var vi = 0;
+    var ai = 0;
+    var tmpVec3: CANNON.Vec3;
+    var theta = Math.PI * 2 / N;
+    for (var i = 0; i < N; i++) {
+        if (verts[vi] == null) { tmpVec3 = verts[vi] = new CANNON.Vec3(); } else { tmpVec3 = verts[vi]; }
+        tmpVec3.set(radiusTop * Math.cos(theta * i), halfH, radiusTop * Math.sin(theta * i));
+        vi++;
+
+        if (verts[vi] == null) { tmpVec3 = verts[vi] = new CANNON.Vec3(); } else { tmpVec3 = verts[vi]; }
+        tmpVec3.set(radiusTop * Math.cos(theta * i), -halfH, radiusTop * Math.sin(theta * i));
+        vi++;
+
+        if (i < N - 1) {
+            faces.push([2 * i + 2, 2 * i + 3, 2 * i + 1, 2 * i]);
+            tf.push(2 * i + 2);
+            bf.push(2 * i + 3);
+        } else {
+            faces.push([0, 1, 2 * i + 1, 2 * i]);
+        }
+
+        if (N % 2 === 1 || i < N / 2) {
+            if (axes[ai] == null) { tmpVec3 = axes[ai] = new CANNON.Vec3(); } else { tmpVec3 = axes[ai]; }
+            tmpVec3.set(cos(theta * (i + 0.5)), 0, sin(theta * (i + 0.5)));
+            ai++;
+        }
+    }
+    faces.push(bf);
+    var temp: number[] = [];
+    for (var i = 0; i < tf.length; i++) {
+        temp.push(tf[tf.length - i - 1]);
+    }
+    faces.push(temp);
+    if (axes[ai] == null) { tmpVec3 = axes[ai] = new CANNON.Vec3(); } else { tmpVec3 = axes[ai]; }
+    tmpVec3.set(0, 1, 0);
+    ai++;
+
+    verts.length = vi;
+    axes.length = ai;
+    out.faces = faces;
+    out.computeNormals();
+    out.worldVerticesNeedsUpdate = true;
+    out.worldFaceNormalsNeedsUpdate = true;
+    out.computeEdges();
+    out.updateBoundingSphereRadius();
 }

@@ -93,13 +93,21 @@ export class CannonSharedBody {
         const index = this.shapes.indexOf(v);
         if (index < 0) {
             const index = this.body.shapes.length;
-            this.body.addShape(v.shape);
+            this.body.addShape(v.shape, v.offset, v.orient);
             this.shapes.push(v);
 
             v.setIndex(index);
-            const offset = this.body.shapeOffsets[index];
-            const orient = this.body.shapeOrientations[index];
-            v.setOffsetAndOrient(offset, orient);
+            // const offset = this.body.shapeOffsets[index];
+            // const orient = this.body.shapeOrientations[index];
+            // v.setOffsetAndOrient(offset, orient);
+
+            if (v.isCompound) {
+                const cs = v.compoundStruct;
+                const len = cs.shapes.length;
+                for (let i = 1; i < len; i++) {
+                    this.body.addShape(cs.shapes[i], cs.offsets[i], cs.orients[i]);
+                }
+            }
         }
     }
 
