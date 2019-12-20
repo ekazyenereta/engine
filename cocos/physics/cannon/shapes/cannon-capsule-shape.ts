@@ -45,6 +45,7 @@ export class CannonCapsuleShape extends CannonShape implements ICapsuleShape {
         super.setScale(scale);
         this.resetCapsule();
     }
+
     /** TODO:FIX */
     private generateCapsule (out: CANNON.ConvexPolyhedron, r: number, h: number, dir = ECapsuleDirection.Y_AXIS) {
         const radiusTop = r;
