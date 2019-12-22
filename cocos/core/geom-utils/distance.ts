@@ -2,10 +2,11 @@
  * @category geometry
  */
 
-import { Vec3 } from '../math';
+import { Vec3, EPSILON } from '../math';
 import aabb from './aabb';
 import obb from './obb';
 import plane from './plane';
+import { line } from '.';
 const X = new Vec3();
 const Y = new Vec3();
 const Z = new Vec3();
@@ -116,4 +117,58 @@ export function pt_point_obb (out: Vec3, point: Vec3, obb_: obb): Vec3 {
         out.z += dist * u[i].z;
     }
     return out;
+}
+
+export function pt_point_line (out: Vec3, point: Vec3, line: line) {
+    const start = line.s;
+    const end = line.e;
+    Vec3.subtract(X, start, end);
+    const dir = X;
+    const dirSquaredLength = Vec3.lengthSqr(dir);
+
+    if (dirSquaredLength == 0) {
+        // The point is at the segment start.
+        Vec3.copy(out, start);
+    } else {
+        // Calculate the projection of the point onto the line extending through the segment.
+        Vec3.subtract(X, point, start);
+        const t = Vec3.dot(X, dir) / dirSquaredLength;
+
+        if (t < 0) {
+            // The point projects beyond the segment start.
+            Vec3.copy(out, start);
+        } else if (t > 1) {
+            // The point projects beyond the segment end.
+            Vec3.copy(out, end);
+        } else {
+            // The point projects between the start and end of the segment.
+            Vec3.scaleAndAdd(out, start, dir, t);
+        }
+    }
+}
+
+export function pt_point_line2 (out: Vec3, point: Vec3, start: Vec3, end: Vec3) {
+    Vec3.subtract(X, start, end);
+    const dir = X;
+    const dirSquaredLength = Vec3.lengthSqr(dir);
+
+    if (dirSquaredLength == 0) {
+        // The point is at the segment start.
+        Vec3.copy(out, start);
+    } else {
+        // Calculate the projection of the point onto the line extending through the segment.
+        Vec3.subtract(X, point, start);
+        const t = Vec3.dot(X, dir) / dirSquaredLength;
+
+        if (t < 0) {
+            // The point projects beyond the segment start.
+            Vec3.copy(out, start);
+        } else if (t > 1) {
+            // The point projects beyond the segment end.
+            Vec3.copy(out, end);
+        } else {
+            // The point projects between the start and end of the segment.
+            Vec3.scaleAndAdd(out, start, dir, t);
+        }
+    }
 }

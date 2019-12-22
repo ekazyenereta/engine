@@ -47,6 +47,16 @@ export class CapsuleColliderComponent extends ColliderComponent {
         if (value < 0) value = 0;
 
         this._radius = value;
+
+        /** Recalculated height */
+        const doubleR = this._radius * 2
+        if (this._height < doubleR) {
+            this._height = doubleR;
+            // if (!CC_EDITOR) {
+            //     this.capsuleShape.height = this._height;
+            // }
+        }
+
         if (!CC_EDITOR) {
             this.capsuleShape.radius = this._radius;
         }
