@@ -2,34 +2,66 @@
 import { BuiltinShape } from './builtin-shape';
 import { ICapsuleShape } from '../../spec/i-physics-shape';
 import { ECapsuleDirection, CapsuleColliderComponent } from '../../framework/components/collider/capsule-collider-component';
-import { Vec3, Mat4, EPSILON } from '../../../core';
+import { Vec3, Mat4, EPSILON, Mat3, Quat } from '../../../core';
 import { IVec3Like, IQuatLike } from '../../../core/math/type-define';
-import { IBuiltinShape } from '../builtin-interface';
 import { absMaxComponent } from '../../framework/util';
-import { intersect, enums, aabb, obb, sphere } from '../../../core/geom-utils';
+import { intersect, enums, aabb, obb, sphere, ray } from '../../../core/geom-utils';
 
 class capsule {
+
     protected _type: number;
+
     radius: number;
-    readonly ellipseCenter0: Vec3;
-    readonly ellipseCenter1: Vec3;
+    halfHeight: number;
+    axis: ECapsuleDirection;
 
     readonly center: Vec3;
+    readonly rotation: Quat;
 
-    transform (m: Mat4, pos: IVec3Like, rot: IQuatLike, scale: IVec3Like, out: IBuiltinShape): any {
-
-    }
+    /** local center of ellipse */
+    readonly ellipseCenter0: Vec3;
+    readonly ellipseCenter1: Vec3;
 
     constructor (radius: number, halfHeight: number, axis = ECapsuleDirection.Y_AXIS) {
         this._type = enums.SHAPE_CAPSULE;
         this.radius = radius;
+        this.halfHeight = halfHeight;
+        this.axis = axis;
+
         this.center = new Vec3();
+        this.rotation = new Quat();
+
         this.ellipseCenter0 = new Vec3(0, halfHeight, 0);
         this.ellipseCenter1 = new Vec3(0, -halfHeight, 0);
+        this.updateCache();
     }
 
-    resetAxis (axis: ECapsuleDirection) {
-        const halfHeight = Math.abs(absMaxComponent(this.ellipseCenter0));
+    transform (m: Mat4, pos: IVec3Like, rot: IQuatLike, scale: IVec3Like, out: capsule) {
+        const ws = scale;
+        const s = absMaxComponent(ws as Vec3);
+        out.radius = this.radius * Math.abs(s);
+
+        const halfTotalWorldHeight = (this.halfHeight + this.radius) * Math.abs(ws.y);
+        let halfWorldHeight = halfTotalWorldHeight - out.radius;
+        if (halfWorldHeight < 0) halfWorldHeight = 0;
+        out.halfHeight = halfWorldHeight;
+
+        Vec3.transformMat4(out.center, this.center, m);
+        Quat.multiply(out.rotation, this.rotation, rot);
+        out.updateCache();
+    }
+
+    updateCache () {
+        this.updateLocalCenter();
+        Vec3.transformQuat(this.ellipseCenter0, this.ellipseCenter0, this.rotation);
+        Vec3.transformQuat(this.ellipseCenter1, this.ellipseCenter1, this.rotation);
+        this.ellipseCenter0.add(this.center);
+        this.ellipseCenter1.add(this.center);
+    }
+
+    updateLocalCenter () {
+        const halfHeight = this.halfHeight;
+        const axis = this.axis;
         switch (axis) {
             case ECapsuleDirection.X_AXIS:
                 this.ellipseCenter0.set(halfHeight, 0, 0);
@@ -45,6 +77,76 @@ class capsule {
                 break;
         }
     }
+
+}
+
+const sphere_0 = new sphere();
+const ray_capsule = function (ray: ray, capsule: capsule) {
+    const radiusSqr = capsule.radius * capsule.radius;
+    var vRayNorm = Vec3.normalize(v3_dirSAB, ray.d);
+    var A = capsule.ellipseCenter0;
+    var B = capsule.ellipseCenter1;
+    var BA = Vec3.subtract(v3_0, B, A);
+    if (BA.equals(Vec3.ZERO)) {
+        sphere_0.radius = capsule.radius;
+        sphere_0.center.set(capsule.ellipseCenter0);
+        return intersect.ray_sphere(ray, sphere_0);
+    }
+
+    var O = ray.o;
+    var OA = Vec3.subtract(v3_1, O, A);
+    var VxBA = Vec3.cross(v3_a2, vRayNorm, BA);
+    var a = VxBA.lengthSqr();
+    if (a == 0) {
+        sphere_0.radius = capsule.radius;
+        var BO = Vec3.subtract(v3_a3, B, O);
+        if (OA.lengthSqr() < BO.lengthSqr()) {
+            sphere_0.center.set(capsule.ellipseCenter0);
+        } else {
+            sphere_0.center.set(capsule.ellipseCenter1);
+        }
+        return intersect.ray_sphere(ray, sphere_0);
+    }
+
+    var OAxBA = Vec3.cross(v3_a1, OA, BA);
+    var ab2 = BA.lengthSqr();
+    var b = 2 * Vec3.dot(VxBA, OAxBA);
+    var c = OAxBA.lengthSqr() - (radiusSqr * ab2);
+    var d = b * b - 4 * a * c;
+
+    if (d < 0) return 0;
+
+    var t = (-b - Math.sqrt(d)) / (2 * a);
+    if (t < 0) {
+        sphere_0.radius = capsule.radius;
+        var BO = Vec3.subtract(v3_a3, B, O);
+        if (OA.lengthSqr() < BO.lengthSqr()) {
+            sphere_0.center.set(capsule.ellipseCenter0);
+        } else {
+            sphere_0.center.set(capsule.ellipseCenter1);
+        }
+        return intersect.ray_sphere(ray, sphere_0);
+    } else {
+        //Limit intersection between the bounds of the cylinder's end caps.
+        var iPos = Vec3.scaleAndAdd(v3_a3, ray.o, vRayNorm, t);
+        var iPosLen = Vec3.subtract(v3_closestA, iPos, A);
+        var tLimit = Vec3.dot(iPosLen, BA) / ab2;
+
+        if (tLimit >= 0 && tLimit <= 1) {
+            return t;
+        } else if (tLimit < 0) {
+            sphere_0.radius = capsule.radius;
+            sphere_0.center.set(capsule.ellipseCenter0);
+            return intersect.ray_sphere(ray, sphere_0);
+        } else if (tLimit > 1) {
+            sphere_0.radius = capsule.radius;
+            sphere_0.center.set(capsule.ellipseCenter1);
+            return intersect.ray_sphere(ray, sphere_0);
+        } else {
+            return 0;
+        }
+    }
+
 }
 
 const aabb_capsule = function (aabb: aabb, capsule: capsule) {
@@ -253,23 +355,13 @@ function pt_point_line2 (out: Vec3, point: Vec3, start: Vec3, end: Vec3) {
     }
 }
 
+intersect[enums.SHAPE_RAY | enums.SHAPE_CAPSULE] = ray_capsule;
 intersect[enums.SHAPE_SPHERE | enums.SHAPE_CAPSULE] = sphere_capsule;
 intersect[enums.SHAPE_AABB | enums.SHAPE_CAPSULE] = aabb_capsule;
 intersect[enums.SHAPE_OBB | enums.SHAPE_CAPSULE] = obb_capsule;
 intersect[enums.SHAPE_CAPSULE] = capsule_capsule;
 
 export class BuiltinCapsuleShape extends BuiltinShape implements ICapsuleShape {
-    set radius (v: number) {
-        // this.localCapsule.radius = v;
-        // const s = absMaxComponent(this.collider.node.worldScale);
-        // this.worldCapsule.radius = this.localCapsule.radius * Math.abs(s);
-    }
-
-    set height (v: number) {
-    }
-
-    set direction (v: ECapsuleDirection) {
-    }
 
     get localCapsule () {
         return this._localShape as capsule;
@@ -291,8 +383,54 @@ export class BuiltinCapsuleShape extends BuiltinShape implements ICapsuleShape {
         this._worldShape = new capsule(radius, h, direction);
     }
 
+    set radius (v: number) {
+        this.localCapsule.radius = v;
+
+        const halfTotalHeight = this.capsuleCollider.height / 2;
+        let halfHeight = halfTotalHeight - v;
+        if (halfHeight < 0) halfHeight = 0;
+        this.localCapsule.halfHeight = halfHeight;
+        this.localCapsule.updateCache();
+
+        this.transform(
+            this._sharedBody.node.worldMatrix,
+            this._sharedBody.node.worldPosition,
+            this._sharedBody.node.worldRotation,
+            this._sharedBody.node.worldScale
+        );
+    }
+
+    set height (v: number) {
+        const hf = v / 2 - this.capsuleCollider.radius;
+        this.localCapsule.halfHeight = hf;
+        this.localCapsule.updateCache();
+
+        this.transform(
+            this._sharedBody.node.worldMatrix,
+            this._sharedBody.node.worldPosition,
+            this._sharedBody.node.worldRotation,
+            this._sharedBody.node.worldScale
+        );
+    }
+
+    set direction (v: ECapsuleDirection) {
+        this.localCapsule.axis = v;
+        this.localCapsule.updateCache();
+
+        this.worldCapsule.axis = v;
+        this.worldCapsule.updateCache();
+
+        this.transform(
+            this._sharedBody.node.worldMatrix,
+            this._sharedBody.node.worldPosition,
+            this._sharedBody.node.worldRotation,
+            this._sharedBody.node.worldScale
+        );
+    }
+
     onLoad () {
         super.onLoad();
         this.radius = this.capsuleCollider.radius;
+        this.direction = this.capsuleCollider.direction;
     }
 }
