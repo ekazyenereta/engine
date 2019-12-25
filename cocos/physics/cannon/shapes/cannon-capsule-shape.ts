@@ -1,11 +1,10 @@
 import CANNON from '@cocos/cannon';
-import { Vec3 } from '../../../core/math';
+import { Vec3, absMaxComponent } from '../../../core/math';
 import { commitShapeUpdates } from '../cannon-util';
 import { CannonShape } from './cannon-shape';
 import { ICapsuleShape } from '../../spec/i-physics-shape';
 import { CapsuleColliderComponent } from '../../../../exports/physics-framework';
 import { ECapsuleDirection } from '../../framework/components/collider/capsule-collider-component';
-import { absMaxComponent } from '../../framework/util';
 import { IVec3Like } from '../../../core/math/type-define';
 
 export class CannonCapsuleShape extends CannonShape implements ICapsuleShape {
@@ -232,7 +231,7 @@ function reConstructCylinder (out: CANNON.Cylinder, radiusTop: number, radiusBot
         vi++;
 
         if (verts[vi] == null) { tmpVec3 = verts[vi] = new CANNON.Vec3(); } else { tmpVec3 = verts[vi]; }
-        tmpVec3.set(radiusTop * Math.cos(theta * i), -halfH, radiusTop * Math.sin(theta * i));
+        tmpVec3.set(radiusBottom * Math.cos(theta * i), -halfH, radiusBottom * Math.sin(theta * i));
         vi++;
 
         if (i < N - 1) {
