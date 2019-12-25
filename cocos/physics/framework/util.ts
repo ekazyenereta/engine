@@ -29,18 +29,3 @@ export function maxComponent (v: Vec3) {
     return Math.max(v.x, Math.max(v.y, v.z));
 }
 
-export function absMaxComponent (v: Vec3) {
-    if (Math.abs(v.x) > Math.abs(v.y)) {
-        if (Math.abs(v.x) > Math.abs(v.z)) {
-            return v.x;
-        } else {
-            return v.z;
-        }
-    } else {
-        if (Math.abs(v.y) > Math.abs(v.z)) {
-            return v.y;
-        } else {
-            return v.z;
-        }
-    }
-}
