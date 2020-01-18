@@ -1,4 +1,5 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
+import './worker/wrapper';
 import { Vec3 } from '../../core/math';
 import { IRigidBody } from '../spec/i-rigid-body';
 import { CannonSharedBody } from './cannon-shared-body';
@@ -301,4 +302,11 @@ export class CannonRigidBody implements IRigidBody {
         this._body.collisionFilterMask &= ~v;
     }
 
+}
+
+
+if (window.useWorker) {
+    CannonRigidBody.prototype.setAngularVelocity = function (this, arg) {
+        this.sharedBody.body.setAngularVelocity(arg);
+    }
 }

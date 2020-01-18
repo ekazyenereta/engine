@@ -1,4 +1,5 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
+import './worker/wrapper';
 import { Quat, Vec3 } from '../../core/math';
 import { ERigidBodyType } from '../framework/physics-enum';
 import { getWrap } from '../framework/util';
@@ -39,9 +40,17 @@ export class CannonSharedBody {
         }
     }
 
+    /** get only */
+    static getSharedBodyByID (id: string) {
+        const key = id;
+        if (CannonSharedBody.sharedBodesMap.has(key)) {
+            return CannonSharedBody.sharedBodesMap.get(key)!;
+        }
+    }
+
     readonly node: Node;
     readonly wrappedWorld: CannonWorld;
-    readonly body: CANNON.Body = new CANNON.Body();
+    readonly body: CANNON.Body;
     readonly shapes: CannonShape[] = [];
     wrappedBody: CannonRigidBody | null = null;
 
@@ -85,6 +94,7 @@ export class CannonSharedBody {
     private constructor (node: Node, wrappedWorld: CannonWorld) {
         this.wrappedWorld = wrappedWorld;
         this.node = node;
+        this.body = new CANNON.Body(node.uuid);
         this.body.material = this.wrappedWorld.world.defaultMaterial;
         this.body.addEventListener('collide', this.onCollidedListener);
     }
@@ -208,4 +218,17 @@ export class CannonSharedBody {
         }
     }
 
+}
+
+
+
+if (window.useWorker) {
+    CannonSharedBody.prototype.syncInitial = function (this) {
+        Vec3.copy(this.body.position, this.node.worldPosition);
+        Quat.copy(this.body.quaternion, this.node.worldRotation);
+        this.body.syncInitial();
+        for (let i = 0; i < this.shapes.length; i++) {
+            this.shapes[i].setScale(this.node.worldScale);
+        }
+    }
 }

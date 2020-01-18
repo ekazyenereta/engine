@@ -69,13 +69,13 @@ interface Window {
     ocancelAnimationFrame (callback: any, element?: any): any;
 }
 
-interface Document{
+interface Document {
     mozHidden: any;
     msHidden: any;
     webkitHidden: any;
 }
 
-interface HTMLElement{
+interface HTMLElement {
     content: any;
     name: any;
 }
@@ -94,8 +94,8 @@ declare type CompareFunction<T> = (a: T, b: T) => number;
 
 declare type RecursivePartial<T> = {
     [P in keyof T]?:
-        T[P] extends Array<infer U> ? Array<RecursivePartial<U>> :
-        T[P] extends ReadonlyArray<infer V> ? ReadonlyArray<RecursivePartial<V>> : RecursivePartial<T[P]>;
+    T[P] extends Array<infer U> ? Array<RecursivePartial<U>> :
+    T[P] extends ReadonlyArray<infer V> ? ReadonlyArray<RecursivePartial<V>> : RecursivePartial<T[P]>;
 };
 
 declare interface IWritableArrayLike<T> {
@@ -103,7 +103,7 @@ declare interface IWritableArrayLike<T> {
     [index: number]: T;
 }
 
-declare type Constructor<T = {}> = new(...args: any[]) => T;
+declare type Constructor<T = {}> = new (...args: any[]) => T;
 
 declare type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 
@@ -120,3 +120,50 @@ declare namespace Editor {
 }
 
 declare const Buffer: any;
+
+declare namespace CANNON {
+    class World { [x: string]: any; }
+    class Body {
+        [x: string]: any;
+
+        static DYNAMIC: any;
+        static STATIC: any;
+        static KINEMATIC: any;
+
+        constructor (v: any);
+    }
+    class Shape {
+        [x: string]: any;
+    }
+    class Box extends Shape {
+        constructor (v: any);
+    }
+    class Sphere extends Shape {
+        constructor (v: any);
+    }
+
+    class Vec3 {
+        x: number;
+        y: number;
+        z: number;
+        [x: string]: any;
+    }
+    class Material {
+        [x: string]: any;
+        constructor (name: string);
+    }
+    class Quaternion {
+        x: number;
+        y: number;
+        z: number;
+        w: number;
+        [x: string]: any;
+    }
+    const RaycastResult: any;
+    const NaiveBroadphase: any;
+
+    interface IRaycastOptions { [x: string]: any; }
+    interface RaycastResult { [x: string]: any; }
+    interface ICollisionEvent { [x: string]: any; }
+    interface ITriggeredEvent { [x: string]: any; }
+}

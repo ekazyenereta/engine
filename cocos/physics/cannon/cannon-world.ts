@@ -1,4 +1,5 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
+// import './worker/wrapper';
 import { Vec3 } from '../../core/math';
 import { fillRaycastResult, toCannonRaycastOptions } from './cannon-util';
 import { CannonConstraint } from './constraint/cannon-constraint';
@@ -127,4 +128,10 @@ const raycastOpt: CANNON.IRaycastOptions = {
     'collisionFilterGroup': -1,
     'collisionFilterMask': -1,
     'skipBackFaces': false
+}
+
+if (window.useWorker) {
+    CannonWorld.prototype["getSharedBodyByID"] = function (id: string) {
+        return CannonSharedBody.getSharedBodyByID(id);
+    }
 }

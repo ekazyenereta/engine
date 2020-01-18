@@ -1,4 +1,5 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
+import './../worker/wrapper';
 import { Vec3 } from '../../../core/math';
 import { getWrap, setWrap } from '../../framework/util';
 import { commitShapeUpdates } from '../cannon-util';
@@ -159,8 +160,8 @@ export class CannonShape implements IBaseShape {
     }
 
     setOffsetAndOrient (offset: CANNON.Vec3, Orient: CANNON.Quaternion) {
-        this._offset = offset;
-        this._orient = Orient;
+        // this._offset = offset;
+        // this._orient = Orient;
     }
 
     private onTrigger (event: CANNON.ITriggeredEvent) {
@@ -182,4 +183,15 @@ export class CannonShape implements IBaseShape {
             // }
         }
     }
+}
+
+if (window.useWorker) {
+    Object.defineProperty(CannonShape.prototype, 'center', {
+        'set': function (this: CannonShape, v: any) {
+            const lpos = this._offset as IVec3Like;
+            Vec3.copy(lpos, v);
+            Vec3.multiply(lpos, lpos, this._collider.node.worldScale);
+            this.shape.center = lpos;
+        }
+    });
 }

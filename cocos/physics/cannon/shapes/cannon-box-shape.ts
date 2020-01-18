@@ -1,4 +1,5 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
+import './../worker/wrapper';
 import { Vec3 } from '../../../core/math';
 import { commitShapeUpdates } from '../cannon-util';
 import { CannonShape } from './cannon-shape';
@@ -41,4 +42,18 @@ export class CannonBoxShape extends CannonShape implements IBoxShape {
         super.setScale(scale);
         this.size = this.boxCollider.size;
     }
+}
+
+if (window.useWorker) {
+    Object.defineProperty(CannonBoxShape.prototype, 'size', {
+        'set': function (this: CannonBoxShape, v: any) {
+            Vec3.multiplyScalar(this.halfExtent, v, 0.5);
+            Vec3.multiply(this.box.halfExtents, this.halfExtent, this.collider.node.worldScale);
+            this.box.size = this.box.halfExtents;
+            this.box.updateConvexPolyhedronRepresentation();
+            if (this._index != -1) {
+                commitShapeUpdates(this._body);
+            }
+        }
+    });
 }

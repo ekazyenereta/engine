@@ -1,4 +1,5 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
+import './worker/wrapper';
 import { getWrap } from '../framework/util';
 import { Vec3 } from '../../core';
 import { IBaseShape } from '../spec/i-physics-shape';

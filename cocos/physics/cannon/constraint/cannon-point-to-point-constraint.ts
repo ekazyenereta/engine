@@ -1,4 +1,4 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
 import { Vec3 } from '../../../core/math';
 import { CannonConstraint } from './cannon-constraint';
 import { CannonSharedBody } from '../cannon-shared-body';

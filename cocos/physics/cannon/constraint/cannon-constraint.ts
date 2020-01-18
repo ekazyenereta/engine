@@ -1,4 +1,4 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
 import { getWrap, setWrap } from '../../framework/util';
 import { CannonRigidBody } from '../cannon-rigid-body';
 

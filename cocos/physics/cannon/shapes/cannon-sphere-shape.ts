@@ -1,4 +1,5 @@
-import CANNON from '@cocos/cannon';
+// import CANNON from '@cocos/cannon';
+import './../worker/wrapper';
 import { Vec3 } from '../../../core/math';
 import { maxComponent } from '../../framework/util';
 import { commitShapeUpdates } from '../cannon-util';
