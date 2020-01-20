@@ -62,6 +62,13 @@
                         "physics-ammo",
                         "physics-framework"
                     ]
+                },
+                {
+                    "text": "oimo.js",
+                    "entry":[
+                        "physics-oimo",
+                        "physics-framework"
+                    ]
                 }
             ]
         },
@@ -72,14 +79,14 @@
             "default": true
         },
         {
-            "text": "tween.js Adapter",
-            "description": "Integrate tween.js in Creator 3D.",
+            "text": "tween",
+            "description": "Tween support",
             "entry": "tween",
             "default": true
         },
         {
             "text": "Terrain",
-            "description": "Integrate tween.js in Creator 3D.",
+            "description": "Terrain support",
             "entry": "terrain",
             "default": true
         }

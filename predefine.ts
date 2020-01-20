@@ -188,6 +188,7 @@ if (CC_BUILD) {
     _global.CC_PHYSICS_BUILTIN = CC_PHYSICS_BUILTIN;
     _global.CC_PHYSICS_CANNON = CC_PHYSICS_CANNON;
     _global.CC_PHYSICS_AMMO = CC_PHYSICS_AMMO;
+    _global.CC_PHYSICS_OIMO = CC_PHYSICS_OIMO;    
 }
 else {
     // Defauled value for editor
@@ -212,6 +213,7 @@ else {
     defineMacro('CC_PHYSICS_BUILTIN', true);
     defineMacro('CC_PHYSICS_CANNON', false);
     defineMacro('CC_PHYSICS_AMMO', false);
+    defineMacro('CC_PHYSICS_OIMO', false);
 }
 
 //

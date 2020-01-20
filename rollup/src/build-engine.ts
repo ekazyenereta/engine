@@ -192,6 +192,7 @@ async function _internalBuild (options: IAdvancedOptions) {
             ignore: [
                 'node_modules/@cocos/ammo/**',
                 'node_modules/@cocos/cannon/**',
+                'node_modules/@cocos/oimo/**',
             ],
             plugins: [
                 ['@babel/plugin-transform-for-of', {
@@ -208,6 +209,7 @@ async function _internalBuild (options: IAdvancedOptions) {
             namedExports: {
                 '@cocos/ammo': ['Ammo'],
                 '@cocos/cannon': ['CANNON'],
+                '@cocos/oimo': ['OIMO'],
             },
         }),
     ];
@@ -407,6 +409,7 @@ interface IGlobaldefines {
     CC_PHYSICS_CANNON?: boolean;
     CC_PHYSICS_AMMO?: boolean;
     CC_PHYSICS_BUILTIN?: boolean;
+    CC_PHYSICS_OIMO?: boolean;
 }
 
 function getGlobalDefs (options: IBuildOptions): object {
@@ -460,6 +463,7 @@ function getGlobalDefs (options: IBuildOptions): object {
     result.CC_PHYSICS_BUILTIN = false;
     result.CC_PHYSICS_CANNON = false;
     result.CC_PHYSICS_AMMO = false;
+    result.CC_PHYSICS_OIMO = false;
 
     for (const moduleEntry of options.moduleEntries) {
         if (moduleEntry in moduleInfoTable) {

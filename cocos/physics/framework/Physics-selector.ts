@@ -2,7 +2,7 @@
  * @hidden
  */
 
-// Cannon
+// cannon
 import { CannonRigidBody } from '../cannon/cannon-rigid-body';
 import { CannonWorld } from '../cannon/cannon-world';
 import { CannonBoxShape } from '../cannon/shapes/cannon-box-shape';
@@ -14,16 +14,22 @@ import { BuiltinBoxShape } from '../cocos/shapes/builtin-box-shape';
 import { BuiltinSphereShape } from '../cocos/shapes/builtin-sphere-shape';
 import { BuiltinCapsuleShape } from '../cocos/shapes/builtin-capsule-shape';
 
-// Ammo
+// ammo
 import { AmmoRigidBody } from '../ammo/ammo-rigid-body';
 import { AmmoWorld } from '../ammo/ammo-world';
 import { AmmoBoxShape } from '../ammo/shapes/ammo-box-shape';
 import { AmmoSphereShape } from '../ammo/shapes/ammo-sphere-shape';
 
-export let BoxShape: typeof CannonBoxShape | typeof BuiltinBoxShape | typeof AmmoBoxShape;
-export let SphereShape: typeof CannonSphereShape | typeof BuiltinSphereShape | typeof AmmoSphereShape;
-export let RigidBody: typeof CannonRigidBody | null | typeof AmmoRigidBody;
-export let PhysicsWorld: typeof CannonWorld | typeof BuiltInWorld | typeof AmmoWorld;
+// oimo
+import { OimoRigidBody } from '../oimo/oimo-rigid-body';
+import { OimoWorld } from '../oimo/oimo-world';
+import { OimoBoxShape } from '../oimo/shapes/oimo-box-shape';
+import { OimoSphereShape } from '../oimo/shapes/oimo-sphere-shape';
+
+export let BoxShape: typeof CannonBoxShape | typeof BuiltinBoxShape | typeof AmmoBoxShape | typeof OimoBoxShape;
+export let SphereShape: typeof CannonSphereShape | typeof BuiltinSphereShape | typeof AmmoSphereShape | typeof OimoSphereShape;
+export let RigidBody: typeof CannonRigidBody | null | typeof AmmoRigidBody | typeof OimoRigidBody;
+export let PhysicsWorld: typeof CannonWorld | typeof BuiltInWorld | typeof AmmoWorld | typeof OimoWorld;
 export let CapsuleShape: typeof BuiltinCapsuleShape;
 
 export function instantiate (
