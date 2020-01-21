@@ -41,7 +41,7 @@ export class OimoSharedBody {
 
     readonly node: Node;
     readonly wrappedWorld: OimoWorld;
-    readonly body: OIMO.RigidBody = new OIMO.RigidBody();
+    readonly body: OIMO.RigidBody;
     readonly shapes: OimoShape[] = [];
     wrappedBody: OimoRigidBody | null = null;
 
@@ -85,6 +85,8 @@ export class OimoSharedBody {
     private constructor (node: Node, wrappedWorld: OimoWorld) {
         this.wrappedWorld = wrappedWorld;
         this.node = node;
+        this.body = new OIMO.RigidBody();
+        this.body.type = OIMO.BODY_STATIC;
         // this.body.material = this.wrappedWorld.world.defaultMaterial;
         // this.body.addEventListener('collide', this.onCollidedListener);
     }
@@ -92,7 +94,7 @@ export class OimoSharedBody {
     addShape (v: OimoShape) {
         const index = this.shapes.indexOf(v);
         if (index < 0) {
-            const index = this.body.shapes.length;
+            const index = this.body.numShapes;
             this.body.addShape(v.shape);
             this.shapes.push(v);
 
@@ -108,7 +110,6 @@ export class OimoSharedBody {
         if (index >= 0) {
             this.shapes.splice(index, 1);
             this.body.removeShape(v.shape);
-
             v.setIndex(-1);
         }
     }
@@ -116,7 +117,7 @@ export class OimoSharedBody {
     syncSceneToPhysics () {
         if (this.node.hasChangedFlags) {
 
-            Vec3.copy(this.body.position, this.node.worldPosition);
+            Vec3.copy(this.body.pos, this.node.worldPosition);
             Quat.copy(this.body.quaternion, this.node.worldRotation);
 
             if (this.node.hasChangedFlags & TransformBit.SCALE) {
@@ -132,8 +133,8 @@ export class OimoSharedBody {
     }
 
     syncPhysicsToScene () {
-        if (this.body.type != ERigidBodyType.STATIC) {
-            Vec3.copy(v3_0, this.body.position);
+        if (this.body.type != OIMO.BODY_STATIC) {
+            Vec3.copy(v3_0, this.body.pos);
             Quat.copy(quat_0, this.body.quaternion);
             this.node.worldPosition = v3_0;
             this.node.worldRotation = quat_0;
@@ -148,9 +149,9 @@ export class OimoSharedBody {
             this.shapes[i].setScale(this.node.worldScale);
         }
 
-        // if (this.body.isSleeping()) {
-        //     this.body.wakeUp();
-        // }
+        if (this.body.sleeping) {
+            this.body.awake();
+        }
     }
 
     private destroy () {

@@ -35,7 +35,8 @@ export class OimoShape implements IBaseShape {
 
     set material (mat: PhysicMaterial) {
         if (mat == null) {
-
+            this._shape.friction = PhysicsSystem.instance.defaultMaterial!.friction;
+            this._shape.restitution = PhysicsSystem.instance.defaultMaterial!.restitution;
         } else {
             this._shape.friction = mat.friction;
             this._shape.restitution = mat.restitution;
@@ -97,8 +98,8 @@ export class OimoShape implements IBaseShape {
         this._sharedBody.reference = false;
         (this._sharedBody as any) = null;
         setWrap(this._shape, null);
-        // (this._offset as any) = null;
-        // (this._orient as any) = null;
+        (this._offset as any) = null;
+        (this._orient as any) = null;
         (this._shape as any) = null;
         (this._collider as any) = null;
         // (this.onTriggerListener as any) = null;

@@ -40,7 +40,14 @@ export class OimoWorld implements IPhysicsWorld {
     private _raycastResult = {};//new OIMO.RaycastResult();
 
     constructor () {
-        this._world = new OIMO.World({});
+        this._world = new OIMO.World({
+            timestep: 1 / 60,
+            iterations: 8,
+            broadphase: 2, // 1: brute force, 2: sweep & prune, 3: volume tree
+            worldscale: 1,
+            random: true,
+            info:true // display statistique
+        });
         // this._world.broadphase = new OIMO.NaiveBroadphase();
     }
 
@@ -93,7 +100,7 @@ export class OimoWorld implements IPhysicsWorld {
         const i = this.bodies.indexOf(sharedBody);
         if (i < 0) {
             this.bodies.push(sharedBody);
-            // this._world.addBody(sharedBody.body);
+            this._world.addRigidBody(sharedBody.body);            
         }
     }
 

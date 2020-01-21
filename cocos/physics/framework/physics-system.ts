@@ -254,8 +254,10 @@ export class PhysicsSystem extends System {
     }
 }
 
-director.on(Director.EVENT_INIT, function () {
-    const sys = new cc.PhysicsSystem();
-    cc.PhysicsSystem.instance = sys;
-    director.registerSystem(PhysicsSystem.ID, sys, 0);
-});
+if (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON || CC_PHYSICS_AMMO || CC_PHYSICS_OIMO) {
+    director.on(Director.EVENT_INIT, function () {
+        const sys = new cc.PhysicsSystem();
+        cc.PhysicsSystem.instance = sys;
+        director.registerSystem(PhysicsSystem.ID, sys, 0);
+    });
+}

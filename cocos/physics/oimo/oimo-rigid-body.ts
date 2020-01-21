@@ -7,9 +7,6 @@ import { OimoWorld } from './oimo-world';
 import { PhysicsSystem } from '../framework/physics-system';
 import { RigidBodyComponent } from '../framework';
 
-// const v3_cannon0 = new //OIMO.Vec3();
-// const v3_cannon1 = new //OIMO.Vec3();
-
 /**
  * wraped shared body
  * dynamic
@@ -39,13 +36,11 @@ export class OimoRigidBody implements IRigidBody {
     set mass (value: number) {
         let type = OIMO.BODY_DYNAMIC;
         if (value == 0) { type = OIMO.BODY_STATIC; }
-        if (this._rigidBody.isKinematic) { type = OIMO.BODY_KINEMATIC; }
+        // if (this._rigidBody.isKinematic) { type = OIMO.BODY_KINEMATIC; }
 
         this._body.setupMass(type, false);
 
-        if (this._body.sleeping) {
-            this._body.awake();
-        }
+        this.tryAwakeBody();
     }
 
     set isKinematic (value: boolean) {
@@ -64,14 +59,12 @@ export class OimoRigidBody implements IRigidBody {
         //         this._body.isStatic = false;
         //     }
         // }
-        this.mass = this._rigidBody.mass;
+        this._body.isKinematic = value;
     }
 
     set fixedRotation (value: boolean) {
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
         // this._body.fixedRotation = value;
         // this._body.updateMassProperties();
@@ -87,27 +80,21 @@ export class OimoRigidBody implements IRigidBody {
 
     set useGravity (value: boolean) {
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
         // this._body.useGravity = value;
     }
 
     set linearFactor (value: Vec3) {
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
         // Vec3.copy(this._body.linearFactor, value);
     }
 
     set angularFactor (value: Vec3) {
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
         // Vec3.copy(this._body.angularFactor, value);
     }
@@ -170,7 +157,7 @@ export class OimoRigidBody implements IRigidBody {
     /** INTERFACE */
 
     wakeUp (): void {
-        // return this._body.wakeUp();
+        return this._body.awake();
     }
 
     sleep (): void {
@@ -178,17 +165,15 @@ export class OimoRigidBody implements IRigidBody {
     }
 
     getLinearVelocity (out: Vec3): Vec3 {
-        // Vec3.copy(out, this._body.velocity);
+        Vec3.copy(out, this._body.linearVelocity);
         return out;
     }
 
     setLinearVelocity (value: Vec3): void {
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
-        // Vec3.copy(this._body.velocity, value);
+        Vec3.copy(this._body.linearVelocity, value);
     }
 
     getAngularVelocity (out: Vec3): Vec3 {
@@ -198,9 +183,7 @@ export class OimoRigidBody implements IRigidBody {
 
     setAngularVelocity (value: Vec3): void {
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
         Vec3.copy(this._body.angularVelocity, value);
     }
@@ -210,10 +193,7 @@ export class OimoRigidBody implements IRigidBody {
             worldPoint = Vec3.ZERO;
         }
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
-
+        this.tryAwakeBody();
         // this._body.applyForce(Vec3.copy(v3_cannon0, force), Vec3.copy(v3_cannon1, worldPoint));
     }
 
@@ -222,11 +202,9 @@ export class OimoRigidBody implements IRigidBody {
             worldPoint = Vec3.ZERO;
         }
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
-        // this._body.applyImpulse(Vec3.copy(v3_cannon0, impulse), Vec3.copy(v3_cannon1, worldPoint));
+        this._body.applyImpulse(worldPoint, impulse);
     }
 
     applyLocalForce (force: Vec3, localPoint?: Vec3): void {
@@ -234,9 +212,7 @@ export class OimoRigidBody implements IRigidBody {
             localPoint = Vec3.ZERO;
         }
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
         // this._body.applyLocalForce(Vec3.copy(v3_cannon0, force), Vec3.copy(v3_cannon1, localPoint));
     }
@@ -246,26 +222,20 @@ export class OimoRigidBody implements IRigidBody {
             localPoint = Vec3.ZERO;
         }
 
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
 
         // this._body.applyLocalImpulse(Vec3.copy(v3_cannon0, impulse), Vec3.copy(v3_cannon1, localPoint));
     }
 
     applyTorque (torque: Vec3): void {
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
         // this._body.torque.x += torque.x;
         // this._body.torque.y += torque.y;
         // this._body.torque.z += torque.z;
     }
 
     applyLocalTorque (torque: Vec3): void {
-        // if (this._body.isSleeping()) {
-        //     this._body.wakeUp();
-        // }
+        this.tryAwakeBody();
         // Vec3.copy(v3_cannon0, torque);
         // this._body.vectorToWorldFrame(v3_cannon0, v3_cannon0);
         // this._body.torque.x += v3_cannon0.x;
@@ -307,6 +277,12 @@ export class OimoRigidBody implements IRigidBody {
 
     removeMask (v: number): void {
         // this._body.collisionFilterMask &= ~v;
+    }
+
+    private tryAwakeBody () {
+        if (this._body.sleeping) {
+            this._body.awake();
+        }
     }
 
 }
