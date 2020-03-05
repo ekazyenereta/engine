@@ -1,7 +1,7 @@
 // Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 import { Material } from '../../assets/material';
 import { IRenderingSubmesh } from '../../assets/mesh';
-import { aabb } from '../../geometry';
+import { aabb, obb, sphere } from '../../geometry';
 import { GFXBuffer } from '../../gfx/buffer';
 import { GFXBindingType, GFXBufferUsageBit, GFXGetTypeSize, GFXMemoryUsageBit } from '../../gfx/define';
 import { GFXDevice } from '../../gfx/device';
@@ -16,6 +16,7 @@ import { IMacroPatch, Pass } from '../core/pass';
 import { customizationManager } from './customization-manager';
 import { RenderScene } from './render-scene';
 import { SubModel } from './submodel';
+import { MeshBVH } from './bvh';
 
 const m4_1 = new Mat4();
 
@@ -445,5 +446,19 @@ export class Model {
             this._matPSORecord.delete(mat);
             this._matRefCount.delete(mat);
         }
+    }
+
+    // bounds
+
+    public boundsTree: MeshBVH | null = null;
+    public boundingBox: aabb | null = null;
+    public boundingSphere: sphere | null = null;
+
+    public computeBoundsTree () {
+        this.boundsTree = new MeshBVH(this);
+    }
+
+    public disposeBoundsTree () {
+        this.boundsTree = null;
     }
 }

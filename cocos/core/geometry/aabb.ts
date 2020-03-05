@@ -162,11 +162,17 @@ export default class aabb {
      */
     public halfExtents: Vec3;
 
+    min: Vec3;
+    max: Vec3;
+
     protected _type: number = enums.SHAPE_AABB;
 
     constructor (px = 0, py = 0, pz = 0, hw = 1, hh = 1, hl = 1) {
         this.center = new Vec3(px, py, pz);
         this.halfExtents = new Vec3(hw, hh, hl);
+        this.min = new Vec3();
+        this.max = new Vec3();
+        this.updateBoundary();
     }
 
     /**
@@ -196,6 +202,7 @@ export default class aabb {
     public transform (m: Mat4, pos: Vec3 | null, rot: Quat | null, scale: Vec3 | null, out: aabb) {
         Vec3.transformMat4(out.center, this.center, m);
         transform_extent_m4(out.halfExtents, this.halfExtents, m);
+        this.updateBoundary();
     }
 
     /**
@@ -215,5 +222,13 @@ export default class aabb {
      */
     public copy (a: aabb): aabb {
         return aabb.copy(this, a);
+    }
+
+    public updateBoundary () {
+        this.getBoundary(this.min, this.max);
+    }
+
+    public union (other: aabb) {
+        aabb.merge(this, this, other);
     }
 }
