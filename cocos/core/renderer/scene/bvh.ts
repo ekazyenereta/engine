@@ -29,7 +29,7 @@ export class MeshBVH {
             maxDepth: 40,
             maxLeafTris: 10,
             verbose: true,
-            lazyGeneration: true,
+            lazyGeneration: false,
 
             // undocumented options
 
@@ -133,8 +133,7 @@ function raycast (model: Model, ray: ray, node: MeshBVHNode) {
         const geo = model.getSubModel(0).subMeshData.geometricInfo!;
         const indices = geo.indices!;
         const positions = geo.positions!;
-        for (let i = node.offset, end = node.offset + node.count; i < end; i++) {
-            // intersectTri(mesh, geo, raycaster, ray, i, intersections);
+        for (let i = node.offset, end = node.offset + node.count; i < end; i++) {            
             const triOffset = i * 3;
             // const a = geo.index.getX(triOffset);
             // const b = geo.index.getX(triOffset + 1);
