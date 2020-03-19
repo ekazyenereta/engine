@@ -40,11 +40,11 @@ export class BulletRigidBody implements IRigidBody {
     }
 
     setLinearDamping (value: number) {
-        // this.impl.setDamping(this._rigidBody.linearDamping, this._rigidBody.angularDamping);
+        BULLET.btRigidBody_setDamping(this.impl, value, this._rigidBody.angularDamping);
     }
 
     setAngularDamping (value: number) {
-        // this.impl.setDamping(this._rigidBody.linearDamping, this._rigidBody.angularDamping);
+        BULLET.btRigidBody_setDamping(this.impl, this._rigidBody.linearDamping, value);
     }
 
     setIsKinematic (value: boolean) {
@@ -62,7 +62,7 @@ export class BulletRigidBody implements IRigidBody {
         if (value) {
             m_rigidBodyFlag &= (~btRigidBodyFlags.BT_DISABLE_WORLD_GRAVITY);
         } else {
-            // this.impl.setGravity(cocos2BulletVec3(this._btVec3_0, Vec3.ZERO));
+            BULLET.btRigidBody_setGravity(this.impl, cocos2BulletVec3(this._btVec3_0, Vec3.ZERO));
             m_rigidBodyFlag |= btRigidBodyFlags.BT_DISABLE_WORLD_GRAVITY;
         }
         BULLET.btRigidBody_setFlags(this.impl, m_rigidBodyFlag);
@@ -70,32 +70,31 @@ export class BulletRigidBody implements IRigidBody {
     }
 
     fixRotation (value: boolean) {
-        // if (value) {
-        //     /** TODO : should i reset angular velocity & torque ? */
-
-        //     this.impl.setAngularFactor(cocos2BulletVec3(this._btVec3_0, Vec3.ZERO));
-        // } else {
-        //     this.impl.setAngularFactor(cocos2BulletVec3(this._btVec3_0, this._rigidBody.angularFactor));
-        // }
+        if (value) {
+            /** TODO : should i reset angular velocity & torque ? */
+            BULLET.btRigidBody_setAngularFactor(this.impl, cocos2BulletVec3(this._btVec3_0, Vec3.ZERO));
+        } else {
+            BULLET.btRigidBody_setAngularFactor(this.impl, cocos2BulletVec3(this._btVec3_0, this._rigidBody.angularFactor));
+        }
     }
 
     setLinearFactor (value: IVec3Like) {
-        // this.impl.setLinearFactor(cocos2BulletVec3(this._btVec3_0, value));
+        BULLET.btRigidBody_setLinearFactor(this.impl, cocos2BulletVec3(this._btVec3_0, value));
     }
 
     setAngularFactor (value: IVec3Like) {
-        // this.impl.setAngularFactor(cocos2BulletVec3(this._btVec3_0, value));
+        BULLET.btRigidBody_setAngularFactor(this.impl, cocos2BulletVec3(this._btVec3_0, value));
     }
 
     setAllowSleep (v: boolean) {
-        // if (v) {
-        //     const state = this.impl.getActivationState();
-        //     if (state == btCollisionObjectStates.DISABLE_DEACTIVATION) {
-        //         this.impl.setActivationState(btCollisionObjectStates.ACTIVE_TAG);
-        //     }
-        // } else {
-        //     this.impl.setActivationState(btCollisionObjectStates.DISABLE_DEACTIVATION);
-        // }
+        if (v) {
+            const state = BULLET.btCollisionObject_getActivationState(this.impl);
+            if (state == btCollisionObjectStates.DISABLE_DEACTIVATION) {
+                BULLET.btCollisionObject_setActivationState(this.impl, btCollisionObjectStates.ACTIVE_TAG);
+            }
+        } else {
+            BULLET.btCollisionObject_setActivationState(this.impl, btCollisionObjectStates.DISABLE_DEACTIVATION);
+        }
     }
 
     get isEnabled () { return this._isEnabled; }
@@ -128,14 +127,14 @@ export class BulletRigidBody implements IRigidBody {
     onEnable () {
         this._isEnabled = true;
         this.setMass(this._rigidBody.mass);
-        // this.setAllowSleep(this._rigidBody.allowSleep);
-        // this.setLinearDamping(this._rigidBody.linearDamping);
-        // this.setAngularDamping(this._rigidBody.angularDamping);
-        // this.setIsKinematic(this._rigidBody.isKinematic);
-        // this.fixRotation(this._rigidBody.fixedRotation);
-        // this.setLinearFactor(this._rigidBody.linearFactor);
-        // this.setAngularFactor(this._rigidBody.angularFactor);
-        // this.useGravity(this._rigidBody.useGravity);
+        this.setAllowSleep(this._rigidBody.allowSleep);
+        this.setLinearDamping(this._rigidBody.linearDamping);
+        this.setAngularDamping(this._rigidBody.angularDamping);
+        this.setIsKinematic(this._rigidBody.isKinematic);
+        this.fixRotation(this._rigidBody.fixedRotation);
+        this.setLinearFactor(this._rigidBody.linearFactor);
+        this.setAngularFactor(this._rigidBody.angularFactor);
+        this.useGravity(this._rigidBody.useGravity);
         this._sharedBody.bodyEnabled = true;
     }
 
@@ -153,7 +152,7 @@ export class BulletRigidBody implements IRigidBody {
     /** INTERFACE */
 
     wakeUp (force?: boolean): void {
-        // this.impl.activate(force);
+        BULLET.btCollisionObject_activate(this.impl, force);
     }
 
     sleep (): void {

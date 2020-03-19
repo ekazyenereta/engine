@@ -175,8 +175,8 @@ export class BulletShape implements IBaseShape {
             this._index = -1;
         }
         if (compound != null) {
-            BULLET.btCompoundShape_addChildShape(this._btCompound, this.transform, this._btShape);
-            this._index = BULLET.btCompoundShape_getNumChildShapes(this._btCompound) - 1;
+            BULLET.btCompoundShape_addChildShape(compound, this.transform, this._btShape);
+            this._index = BULLET.btCompoundShape_getNumChildShapes(compound) - 1;
         }
         this._btCompound = compound;
     }
