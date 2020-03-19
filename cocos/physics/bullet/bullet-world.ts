@@ -46,8 +46,8 @@ export class BulletWorld implements IPhysicsWorld {
     readonly contactsDic = new TupleDictionary();
     readonly oldContactsDic = new TupleDictionary();
 
-    // readonly closeHitCB = BULLET.ClosestRayResultCallback(BULLET.btVector3(), BULLET.btVector3());
-    // readonly allHitsCB = BULLET.AllHitsRayResultCallback(BULLET.btVector3(), BULLET.btVector3());
+    readonly closeHitCB = BULLET.ClosestRayResultCallback_create(BULLET.btVector3_create(0, 0, 0), BULLET.btVector3_create(0, 0, 0));
+    readonly allHitsCB = BULLET.AllHitsRayResultCallback_create(BULLET.btVector3_create(0, 0, 0), BULLET.btVector3_create(0, 0, 0));
 
     constructor (options?: any) {
         const collisionConfiguration = BULLET.btDefaultCollisionConfiguration_create();
@@ -69,76 +69,77 @@ export class BulletWorld implements IPhysicsWorld {
             this.bodies[i].syncSceneToPhysics();
         }
 
-        // this._btWorld.stepSimulation(timeStep, maxSubStep, fixTimeStep);
         BULLET.btDiscreteDynamicsWorld_stepSimulation(this._btWorld, timeStep, maxSubStep, fixTimeStep);
 
         for (let i = 0; i < this.bodies.length; i++) {
             this.bodies[i].syncPhysicsToScene();
         }
 
-        // const numManifolds = this._btDispatcher.getNumManifolds();
-        // for (let i = 0; i < numManifolds; i++) {
-        //     const manifold = this._btDispatcher.getManifoldByIndexInternal(i);
-        //     const numContacts = manifold.getNumContacts();
-        //     for (let j = 0; j < numContacts; j++) {
-        //         const manifoldPoint:number;
-        //         const d = manifoldPoint.getDistance();
-        //         if (d <= 0.0001) {
-        //             const s0 = manifoldPoint.getShape0();
-        //             const s1 = manifoldPoint.getShape1();
-        //             let shape0: any;
-        //             let shape1: any;
-        //             if (s0.isCompound()) {
-        //                 const com = Ammo.castObject(s0, Ammo.btCompoundShape) as Ammo.btCompoundShape;
-        //                 shape0 = (com.getChildShape(manifoldPoint.m_index0) as any).wrapped;
-        //             } else {
-        //                 shape0 = (s0 as any).wrapped;
-        //             }
+        const numManifolds = BULLET.btDispatcher_getNumManifolds(this._btDispatcher);
+        for (let i = 0; i < numManifolds; i++) {
+            const manifold = BULLET.btDispatcher_getManifoldByIndexInternal(this._btDispatcher, i);
+            const numContacts = BULLET.btPersistentManifold_getNumContacts(manifold);
+            for (let j = 0; j < numContacts; j++) {
+                const manifoldPoint = BULLET.btPersistentManifold_getContactPoint(j);
+                const d = BULLET.btManifoldPoint_getDistance(manifoldPoint);
+                if (d <= 0.0001) {
+                    //TODO:
+                    // const s0 = manifoldPoint.getShape0();
+                    // const s1 = manifoldPoint.getShape1();
+                    // let shape0: any;
+                    // let shape1: any;
+                    // if (s0.isCompound()) {
+                    //     const com = Ammo.castObject(s0, Ammo.btCompoundShape) as Ammo.btCompoundShape;
+                    //     shape0 = (com.getChildShape(manifoldPoint.m_index0) as any).wrapped;
+                    // } else {
+                    //     shape0 = (s0 as any).wrapped;
+                    // }
 
-        //             if (s1.isCompound()) {
-        //                 const com = Ammo.castObject(s1, Ammo.btCompoundShape) as Ammo.btCompoundShape;
-        //                 shape1 = (com.getChildShape(manifoldPoint.m_index1) as any).wrapped;
-        //             } else {
-        //                 shape1 = (s1 as any).wrapped;
-        //             }
+                    // if (s1.isCompound()) {
+                    //     const com = Ammo.castObject(s1, Ammo.btCompoundShape) as Ammo.btCompoundShape;
+                    //     shape1 = (com.getChildShape(manifoldPoint.m_index1) as any).wrapped;
+                    // } else {
+                    //     shape1 = (s1 as any).wrapped;
+                    // }
 
-        //             // current contact
-        //             var item = this.contactsDic.get(shape0.id, shape1.id) as any;
-        //             if (item == null) {
-        //                 item = this.contactsDic.set(shape0.id, shape1.id,
-        //                     {
-        //                         shape0: shape0,
-        //                         shape1: shape1,
-        //                         contacts: []
-        //                     }
-        //                 );
-        //             }
-        //             item.contacts.push(manifoldPoint);
-        //         }
-        //     }
-        // }
+                    // // current contact
+                    // var item = this.contactsDic.get(shape0.id, shape1.id) as any;
+                    // if (item == null) {
+                    //     item = this.contactsDic.set(shape0.id, shape1.id,
+                    //         {
+                    //             shape0: shape0,
+                    //             shape1: shape1,
+                    //             contacts: []
+                    //         }
+                    //     );
+                    // }
+                    // item.contacts.push(manifoldPoint);
+                }
+            }
+        }
 
-        // this.emitEvents();
+        this.emitEvents();
 
-        // // sync scene to physics again
-        // for (let i = 0; i < this.ghosts.length; i++) {
-        //     this.ghosts[i].syncSceneToGhost();
-        // }
+        // sync scene to physics again
+        for (let i = 0; i < this.ghosts.length; i++) {
+            this.ghosts[i].syncSceneToGhost();
+        }
 
-        // for (let i = 0; i < this.bodies.length; i++) {
-        //     this.bodies[i].syncSceneToPhysics();
-        // }
+        for (let i = 0; i < this.bodies.length; i++) {
+            this.bodies[i].syncSceneToPhysics();
+        }
 
     }
 
     raycast (worldRay: ray, options: IRaycastOptions, pool: RecyclePool<PhysicsRayResult>, results: PhysicsRayResult[]): boolean {
-        // let from = cocos2BulletVec3(this.allHitsCB.m_rayFromWorld, worldRay.o);
-        // worldRay.computeHit(v3_0, options.maxDistance);
-        // let to = cocos2BulletVec3(this.allHitsCB.m_rayToWorld, v3_0);
-
-        // this.allHitsCB.m_collisionFilterGroup = -1;
-        // this.allHitsCB.m_collisionFilterMask = options.mask;
-        // this.allHitsCB.m_closestHitFraction = 1;
+        const ptr = this.allHitsCB;
+        const from = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayFromWorld(ptr), worldRay.o);
+        worldRay.computeHit(v3_0, options.maxDistance);
+        const to = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayToWorld(ptr), v3_0);
+        BULLET.RayResultCallback_set_m_collisionFilterGroup(ptr, -1);
+        BULLET.RayResultCallback_set_m_collisionFilterMask(ptr, options.mask);
+        BULLET.RayResultCallback_set_m_closestHitFraction(ptr, 1);
+        BULLET.RayResultCallback_set_m_collisionObject(ptr, null);
         // this.allHitsCB.m_shapePart = -1;
         // (this.allHitsCB.m_collisionObject as any) = null;
         // this.allHitsCB.m_shapeParts.clear();
@@ -149,25 +150,26 @@ export class BulletWorld implements IPhysicsWorld {
         // const hn = (this.allHitsCB.m_hitNormalWorld as any);
         // hp.clear();
         // hn.clear();
-        // this._btWorld.rayTest(from, to, this.allHitsCB);
-        // if (this.allHitsCB.hasHit()) {
-        //     for (let i = 0, n = this.allHitsCB.m_collisionObjects.size(); i < n; i++) {
-        //         const shapeIndex = this.allHitsCB.m_shapeParts.at(i);
-        //         const btObj = this.allHitsCB.m_collisionObjects.at(i);
-        //         const index = btObj.getUserIndex();
-        //         const shared = BulletInstance.bodyAndGhosts['KEY' + index];
-        //         // if (shared.wrappedShapes.length > shapeIndex) {
-        //         const shape = shared.wrappedShapes[shapeIndex];
-        //         bullet2CocosVec3(v3_0, hp.at(i));
-        //         bullet2CocosVec3(v3_1, hn.at(i));
-        //         const distance = Vec3.distance(worldRay.o, v3_0);
-        //         const r = pool.add();
-        //         r._assign(v3_0, distance, shape.collider, v3_1);
-        //         results.push(r);
-        //         // }
-        //     }
-        //     return true;
-        // }
+        BULLET.btCollisionWorld_rayTest(this._btWorld, from, to, ptr);
+        const hasHit = BULLET.RayResultCallback_hasHit(ptr);
+        if (hasHit) {
+            // for (let i = 0, n = this.allHitsCB.m_collisionObjects.size(); i < n; i++) {
+            //     const shapeIndex = this.allHitsCB.m_shapeParts.at(i);
+            //     const btObj = this.allHitsCB.m_collisionObjects.at(i);
+            //     const index = btObj.getUserIndex();
+            //     const shared = BulletInstance.bodyAndGhosts['KEY' + index];
+            //     // if (shared.wrappedShapes.length > shapeIndex) {
+            //     const shape = shared.wrappedShapes[shapeIndex];
+            //     bullet2CocosVec3(v3_0, hp.at(i));
+            //     bullet2CocosVec3(v3_1, hn.at(i));
+            //     const distance = Vec3.distance(worldRay.o, v3_0);
+            //     const r = pool.add();
+            //     r._assign(v3_0, distance, shape.collider, v3_1);
+            //     results.push(r);
+            //     // }
+            // }
+            return true;
+        }
         return false;
     }
 
