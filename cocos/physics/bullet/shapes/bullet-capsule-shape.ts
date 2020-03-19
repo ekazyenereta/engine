@@ -14,7 +14,7 @@ export class BulletCapsuleShape extends BulletShape implements ICapsuleShape {
     }
 
     setDirection (v: number) {
-        // this.impl.setUpAxis(v);
+        BULLET.btCapsuleShape_setUpAxis(this.impl, v);
     }
 
     setRadius (v: number) {
@@ -48,26 +48,26 @@ export class BulletCapsuleShape extends BulletShape implements ICapsuleShape {
      * radius \ height \ scale
      */
     updateCapsuleProp (radius: number, height: number, scale: IVec3Like) {
-        // const ws = scale;
-        // const upAxis = this.impl.getUpAxis();
-        // const isd = this.impl.getImplicitShapeDimensions();
-        // if (upAxis == 1) {
-        //     const wh = height * Math.abs(ws.y);
-        //     const wr = radius * absMax(ws.x, ws.z);
-        //     const halfH = (wh - wr * 2) / 2;
-        //     isd.setValue(wr, halfH, wr);
-        // } else if (upAxis == 0) {
-        //     const wh = height * Math.abs(ws.x);
-        //     const wr = radius * absMax(ws.y, ws.z);
-        //     const halfH = (wh - wr * 2) / 2;
-        //     isd.setValue(halfH, wr, wr);
-        // } else {
-        //     const wh = height * Math.abs(ws.z);
-        //     const wr = radius * absMax(ws.x, ws.y);
-        //     const halfH = (wh - wr * 2) / 2;
-        //     isd.setValue(wr, wr, halfH);
-        // }
-        // cocos2BulletVec3(this.scale, Vec3.ONE);
-        // this.impl.setLocalScaling(this.scale);
+        const ws = scale;
+        const upAxis = this.collider.direction;
+        const isd = BULLET.btConvexInternalShape_getImplicitShapeDimensions(this.impl);
+        if (upAxis == 1) {
+            const wh = height * Math.abs(ws.y);
+            const wr = radius * absMax(ws.x, ws.z);
+            const halfH = (wh - wr * 2) / 2;
+            BULLET.btVector3_setValue(isd, wr, halfH, wr);
+        } else if (upAxis == 0) {
+            const wh = height * Math.abs(ws.x);
+            const wr = radius * absMax(ws.y, ws.z);
+            const halfH = (wh - wr * 2) / 2;
+            BULLET.btVector3_setValue(halfH, wr, wr);
+        } else {
+            const wh = height * Math.abs(ws.z);
+            const wr = radius * absMax(ws.x, ws.y);
+            const halfH = (wh - wr * 2) / 2;
+            BULLET.btVector3_setValue(wr, wr, halfH);
+        }
+        cocos2BulletVec3(this.scale, Vec3.ONE);
+        BULLET.btCollisionShape_setLocalScaling(this.impl, this.scale);
     }
 }
