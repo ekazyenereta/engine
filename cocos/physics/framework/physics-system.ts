@@ -245,10 +245,10 @@ export class PhysicsSystem extends System {
     }
 }
 
-if (PHYSICS_BUILTIN || PHYSICS_CANNON || PHYSICS_AMMO) {
+// if (PHYSICS_BUILTIN || PHYSICS_CANNON || PHYSICS_AMMO) {
     director.on(Director.EVENT_INIT, function () {
         const sys = new cc.PhysicsSystem();
         cc.PhysicsSystem._instance = sys;
         director.registerSystem(PhysicsSystem.ID, sys, 0);
     });
-}
+// }
