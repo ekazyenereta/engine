@@ -154,7 +154,7 @@ export class BulletSharedBody {
         const motionState = BULLET.LayaMotionState_create();//BULLET.btDefaultMotionState_create(st);
         const localInertia = BULLET.btVector3_create(1.6666666269302368, 1.6666666269302368, 1.6666666269302368);
         const bodyShape = BULLET.btCompoundShape_create();
-        const rbInfo = BULLET.btRigidBodyConstructionInfo_create(10, motionState, bodyShape, localInertia);
+        const rbInfo = BULLET.btRigidBodyConstructionInfo_create(0, motionState, bodyShape, localInertia);
         const body = BULLET.btRigidBody_create(rbInfo);
         this.bodyStruct = {
             'id': sharedIDCounter++,
@@ -188,8 +188,8 @@ export class BulletSharedBody {
         /** DEBUG */
         // this.body.setActivationState(AmmoCollisionObjectStates.DISABLE_DEACTIVATION);
         // this.ghost.setActivationState(AmmoCollisionObjectStates.DISABLE_DEACTIVATION);
-        BULLET.btCollisionObject_forceActivationState(this.body, btCollisionObjectStates.DISABLE_SIMULATION);
-        BULLET.btCollisionObject_forceActivationState(this.ghost, btCollisionObjectStates.DISABLE_SIMULATION);
+        BULLET.btCollisionObject_forceActivationState(this.body, btCollisionObjectStates.DISABLE_DEACTIVATION);
+        BULLET.btCollisionObject_forceActivationState(this.ghost, btCollisionObjectStates.DISABLE_DEACTIVATION);
     }
 
     addShape (v: BulletShape, isTrigger: boolean) {
