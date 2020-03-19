@@ -20,5 +20,5 @@ export class BulletConstant {
         if (BulletConstant._instance == null) BulletConstant._instance = new BulletConstant;
         return BulletConstant._instance;
     }
-    // readonly EMPTY_SHAPE = new Ammo.btEmptyShape();
+    readonly EMPTY_SHAPE = BULLET.btEmptyShape_create();
 }
