@@ -88,12 +88,9 @@ export class BulletRigidBody implements IRigidBody {
 
     setAllowSleep (v: boolean) {
         if (v) {
-            const state = BULLET.btCollisionObject_getActivationState(this.impl);
-            if (state == btCollisionObjectStates.DISABLE_DEACTIVATION) {
-                BULLET.btCollisionObject_setActivationState(this.impl, btCollisionObjectStates.ACTIVE_TAG);
-            }
+            BULLET.btCollisionObject_forceActivationState(this.impl, btCollisionObjectStates.ACTIVE_TAG);
         } else {
-            BULLET.btCollisionObject_setActivationState(this.impl, btCollisionObjectStates.DISABLE_DEACTIVATION);
+            BULLET.btCollisionObject_forceActivationState(this.impl, btCollisionObjectStates.DISABLE_DEACTIVATION);
         }
     }
 
