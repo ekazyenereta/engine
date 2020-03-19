@@ -75,7 +75,7 @@ export class BulletWorld implements IPhysicsWorld {
             this.bodies[i].syncPhysicsToScene();
         }
 
-        this.emitEvents();
+        // this.emitEvents();
 
         // sync scene to physics again
         for (let i = 0; i < this.ghosts.length; i++) {

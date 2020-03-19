@@ -5,11 +5,11 @@ var asmLibraryArg = {
     memory: {},
     getWorldTransform: (id: number, transform: number) => { },
     setWorldTransform: (id: number, transform: number) => {
-        var v3 = BULLET.btTransform_getOrigin(transform);
-        var x = BULLET.btVector3_x(v3);
-        var y = BULLET.btVector3_y(v3);
-        var z = BULLET.btVector3_z(v3);
-        console.log(x, y, z);
+        // var v3 = BULLET.btTransform_getOrigin(transform);
+        // var x = BULLET.btVector3_x(v3);
+        // var y = BULLET.btVector3_y(v3);
+        // var z = BULLET.btVector3_z(v3);
+        // // console.log(x, y, z);
     }
 };
 
@@ -47,7 +47,7 @@ window["BULLET"] = BULLET;
 // physics3D.btCollisionWorld_addCollisionObject(nativeCollisionWorld, btColObj, COLLISIONFILTERGROUP_DEFAULTFILTER, COLLISIONFILTERGROUP_ALLFILTER);
 
 // //Add  Rigidbody: is a rigidbdoy ball up the plane
-// var constructInfo = physics3D.btRigidBodyConstructionInfo_create(0.0, physics3D.LayaMotionState_create(), null, physics3D.btVector3_create(0, 0, 0));
+// var constructInfo = physics3D.btRigidBodyConstructionInfo_create(0.0, physics3D.CCMotionState_create(), null, physics3D.btVector3_create(0, 0, 0));
 // var btRigid = physics3D.btRigidBody_create(constructInfo);
 // physics3D.btRigidBodyConstructionInfo_destroy(constructInfo);
 

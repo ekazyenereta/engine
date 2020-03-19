@@ -151,7 +151,7 @@ export class BulletSharedBody {
         const bodyQuat = BULLET.btQuaternion_create(0, 0, 0, 1);
         cocos2BulletQuat(bodyQuat, this.node.worldRotation);
         BULLET.btTransform_setRotation(st, bodyQuat);
-        const motionState = BULLET.LayaMotionState_create();//BULLET.btDefaultMotionState_create(st);
+        const motionState = BULLET.CCMotionState_create();//BULLET.btDefaultMotionState_create(st);
         const localInertia = BULLET.btVector3_create(1.6666666269302368, 1.6666666269302368, 1.6666666269302368);
         const bodyShape = BULLET.btCompoundShape_create();
         const rbInfo = BULLET.btRigidBodyConstructionInfo_create(0, motionState, bodyShape, localInertia);
