@@ -75,49 +75,6 @@ export class BulletWorld implements IPhysicsWorld {
             this.bodies[i].syncPhysicsToScene();
         }
 
-        const numManifolds = BULLET.btDispatcher_getNumManifolds(this._btDispatcher);
-        for (let i = 0; i < numManifolds; i++) {
-            const manifold = BULLET.btDispatcher_getManifoldByIndexInternal(this._btDispatcher, i);
-            const numContacts = BULLET.btPersistentManifold_getNumContacts(manifold);
-            for (let j = 0; j < numContacts; j++) {
-                const manifoldPoint = BULLET.btPersistentManifold_getContactPoint(j);
-                const d = BULLET.btManifoldPoint_getDistance(manifoldPoint);
-                if (d <= 0.0001) {
-                    //TODO:
-                    // const s0 = manifoldPoint.getShape0();
-                    // const s1 = manifoldPoint.getShape1();
-                    // let shape0: any;
-                    // let shape1: any;
-                    // if (s0.isCompound()) {
-                    //     const com = Ammo.castObject(s0, Ammo.btCompoundShape) as Ammo.btCompoundShape;
-                    //     shape0 = (com.getChildShape(manifoldPoint.m_index0) as any).wrapped;
-                    // } else {
-                    //     shape0 = (s0 as any).wrapped;
-                    // }
-
-                    // if (s1.isCompound()) {
-                    //     const com = Ammo.castObject(s1, Ammo.btCompoundShape) as Ammo.btCompoundShape;
-                    //     shape1 = (com.getChildShape(manifoldPoint.m_index1) as any).wrapped;
-                    // } else {
-                    //     shape1 = (s1 as any).wrapped;
-                    // }
-
-                    // // current contact
-                    // var item = this.contactsDic.get(shape0.id, shape1.id) as any;
-                    // if (item == null) {
-                    //     item = this.contactsDic.set(shape0.id, shape1.id,
-                    //         {
-                    //             shape0: shape0,
-                    //             shape1: shape1,
-                    //             contacts: []
-                    //         }
-                    //     );
-                    // }
-                    // item.contacts.push(manifoldPoint);
-                }
-            }
-        }
-
         this.emitEvents();
 
         // sync scene to physics again
@@ -136,10 +93,10 @@ export class BulletWorld implements IPhysicsWorld {
         const from = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayFromWorld(ptr), worldRay.o);
         worldRay.computeHit(v3_0, options.maxDistance);
         const to = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayToWorld(ptr), v3_0);
-        BULLET.RayResultCallback_set_m_collisionFilterGroup(ptr, -1);
-        BULLET.RayResultCallback_set_m_collisionFilterMask(ptr, options.mask);
-        BULLET.RayResultCallback_set_m_closestHitFraction(ptr, 1);
-        BULLET.RayResultCallback_set_m_collisionObject(ptr, null);
+        // BULLET.RayResultCallback_set_m_collisionFilterGroup(ptr, -1);
+        // BULLET.RayResultCallback_set_m_collisionFilterMask(ptr, options.mask);
+        // BULLET.RayResultCallback_set_m_closestHitFraction(ptr, 1);
+        // BULLET.RayResultCallback_set_m_collisionObject(ptr, null);
         // this.allHitsCB.m_shapePart = -1;
         // (this.allHitsCB.m_collisionObject as any) = null;
         // this.allHitsCB.m_shapeParts.clear();
@@ -150,24 +107,29 @@ export class BulletWorld implements IPhysicsWorld {
         // const hn = (this.allHitsCB.m_hitNormalWorld as any);
         // hp.clear();
         // hn.clear();
+        BULLET.RayResultCallback_reset(ptr, options.group, options.mask);
+        BULLET.AllHitsRayResultCallback_reset(ptr);
         BULLET.btCollisionWorld_rayTest(this._btWorld, from, to, ptr);
         const hasHit = BULLET.RayResultCallback_hasHit(ptr);
         if (hasHit) {
-            // for (let i = 0, n = this.allHitsCB.m_collisionObjects.size(); i < n; i++) {
-            //     const shapeIndex = this.allHitsCB.m_shapeParts.at(i);
-            //     const btObj = this.allHitsCB.m_collisionObjects.at(i);
-            //     const index = btObj.getUserIndex();
-            //     const shared = BulletInstance.bodyAndGhosts['KEY' + index];
-            //     // if (shared.wrappedShapes.length > shapeIndex) {
-            //     const shape = shared.wrappedShapes[shapeIndex];
-            //     bullet2CocosVec3(v3_0, hp.at(i));
-            //     bullet2CocosVec3(v3_1, hn.at(i));
-            //     const distance = Vec3.distance(worldRay.o, v3_0);
-            //     const r = pool.add();
-            //     r._assign(v3_0, distance, shape.collider, v3_1);
-            //     results.push(r);
-            //     // }
-            // }
+            const m_collisionObjects = BULLET.AllHitsRayResultCallback_get_m_collisionObjects(ptr);
+            const m_shapeParts = BULLET.AllHitsRayResultCallback_get_m_shapeParts(ptr);
+            const m_hitPointWorld = BULLET.AllHitsRayResultCallback_get_m_hitPointWorld(ptr);
+            const m_hitNormalWorld = BULLET.AllHitsRayResultCallback_get_m_hitNormalWorld(ptr);
+            const size = BULLET.tBtCollisionObjectArray_size(m_collisionObjects);
+            for (let i = 0; i < size; i++) {
+                const shapeIndex = BULLET.tScalarArray_at(m_shapeParts, i);
+                const btObj = BULLET.tBtCollisionObjectArray_at(m_collisionObjects, i);
+                const index = BULLET.btCollisionObject_getUserIndex(btObj);
+                const shared = BulletInstance.bodyAndGhosts['KEY' + index];
+                const shape = shared.wrappedShapes[shapeIndex];
+                bullet2CocosVec3(v3_0, BULLET.tVector3Array_at(m_hitPointWorld, i));
+                bullet2CocosVec3(v3_1, BULLET.tVector3Array_at(m_hitNormalWorld, i));
+                const distance = Vec3.distance(worldRay.o, v3_0);
+                const r = pool.add();
+                r._assign(v3_0, distance, shape.collider, v3_1);
+                results.push(r);
+            }
             return true;
         }
         return false;
@@ -182,21 +144,21 @@ export class BulletWorld implements IPhysicsWorld {
         const from = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayFromWorld(ptr), worldRay.o);
         worldRay.computeHit(v3_0, options.maxDistance);
         const to = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayToWorld(ptr), v3_0);
-        BULLET.RayResultCallback_set_m_collisionFilterGroup(ptr, -1);
-        BULLET.RayResultCallback_set_m_collisionFilterMask(ptr, options.mask);
-        BULLET.RayResultCallback_set_m_closestHitFraction(ptr, 1);
-        BULLET.RayResultCallback_set_m_collisionObject(ptr, null);
-
+        // BULLET.RayResultCallback_set_m_collisionFilterGroup(ptr, -1);
+        // BULLET.RayResultCallback_set_m_collisionFilterMask(ptr, options.mask);
+        // BULLET.RayResultCallback_set_m_closestHitFraction(ptr, 1);
+        // BULLET.RayResultCallback_set_m_collisionObject(ptr, null);
+        BULLET.RayResultCallback_reset(ptr, options.group, options.mask);
         BULLET.btCollisionWorld_rayTest(this._btWorld, from, to, ptr);
         const hasHit = BULLET.RayResultCallback_hasHit(ptr);
         if (hasHit) {
             const btObj = BULLET.RayResultCallback_get_m_collisionObject(ptr);
             const index = BULLET.btCollisionObject_getUserIndex(btObj);
             const shared = BulletInstance.bodyAndGhosts['KEY' + index];
-            const shapeIndex = ptr.m_shapePart;
+            const shapeIndex = BULLET.RayResultCallback_get_m_shapePart(ptr);
             const shape = shared.wrappedShapes[shapeIndex];
-            bullet2CocosVec3(v3_0, ptr.m_hitPointWorld);
-            bullet2CocosVec3(v3_1, ptr.m_hitNormalWorld);
+            bullet2CocosVec3(v3_0, BULLET.ClosestRayResultCallback_get_m_hitPointWorld(ptr));
+            bullet2CocosVec3(v3_1, BULLET.ClosestRayResultCallback_get_m_hitNormalWorld(ptr));
             const distance = Vec3.distance(worldRay.o, v3_0);
             result._assign(v3_0, distance, shape.collider, v3_1);
             return true;
@@ -241,6 +203,58 @@ export class BulletWorld implements IPhysicsWorld {
     }
 
     emitEvents () {
+        // collect
+        const numManifolds = BULLET.btDispatcher_getNumManifolds(this._btDispatcher);
+        for (let i = 0; i < numManifolds; i++) {
+            const manifold = BULLET.btDispatcher_getManifoldByIndexInternal(this._btDispatcher, i);
+            const body0 = BULLET.btPersistentManifold_getBody0(manifold);
+            const body1 = BULLET.btPersistentManifold_getBody1(manifold);
+            const index0 = BULLET.btCollisionObject_getUserIndex(body0);
+            const index1 = BULLET.btCollisionObject_getUserIndex(body1);
+            const numContacts = BULLET.btPersistentManifold_getNumContacts(manifold);
+            for (let j = 0; j < numContacts; j++) {
+                const manifoldPoint = BULLET.btPersistentManifold_getContactPoint(j);
+                const d = BULLET.btManifoldPoint_getDistance(manifoldPoint);
+                if (d <= 0.0001) {
+                    const s0 = BULLET.btManifoldPoint_getShape0();
+                    const s1 = BULLET.btManifoldPoint_getShape1();
+                    let sindex0 = 0;
+                    let sindex1 = 0;
+                    if (BULLET.btCollisionShape_isCompound(s0)) {
+                        sindex0 = BULLET.btManifoldPoint_get_m_index0(manifoldPoint);
+                    } else {
+                        sindex0 = BULLET.btCollisionShape_getUserIndex(s0);
+                    }
+
+                    if (BULLET.btCollisionShape_isCompound(s1)) {
+                        sindex1 = BULLET.btManifoldPoint_get_m_index1(manifoldPoint);
+                    } else {
+                        sindex1 = BULLET.btCollisionShape_getUserIndex(s1);
+                    }
+
+                    const key0 = 'KEY' + index0;
+                    const key1 = 'KEY' + index1;
+                    const shared0 = BulletInstance.bodyAndGhosts[key0];
+                    const shared1 = BulletInstance.bodyAndGhosts[key1];
+                    const shape0 = shared0.wrappedShapes[sindex0];
+                    const shape1 = shared1.wrappedShapes[sindex1];
+
+                    // current contact
+                    var item = this.contactsDic.get(shape0.id, shape1.id) as any;
+                    if (item == null) {
+                        item = this.contactsDic.set(shape0.id, shape1.id,
+                            {
+                                shape0: shape0,
+                                shape1: shape1,
+                                contacts: []
+                            }
+                        );
+                    }
+                    item.contacts.push(manifoldPoint);
+                }
+            }
+        }
+
         // is enter or stay
         let dicL = this.contactsDic.getLength();
         while (dicL--) {
@@ -280,21 +294,21 @@ export class BulletWorld implements IPhysicsWorld {
                     }
 
                     for (let i = 0; i < data.contacts.length; i++) {
-                        const cq = data.contacts[i] as Ammo.btManifoldPoint;
-                        // if (contactsPool.length > 0) {
-                        //     const c = contactsPool.pop();
-                        //     bullet2CocosVec3(c.contactA, cq.m_positionWorldOnA);
-                        //     bullet2CocosVec3(c.contactB, cq.m_positionWorldOnB);
-                        //     bullet2CocosVec3(c.normal, cq.m_normalWorldOnB);
-                        //     CollisionEventObject.contacts.push(c);
-                        // } else {
-                        //     const c = {
-                        //         contactA: bullet2CocosVec3(new Vec3(), cq.m_positionWorldOnA),
-                        //         contactB: bullet2CocosVec3(new Vec3(), cq.m_positionWorldOnB),
-                        //         normal: bullet2CocosVec3(new Vec3(), cq.m_normalWorldOnB),
-                        //     };
-                        //     CollisionEventObject.contacts.push(c);
-                        // }
+                        const cq = data.contacts[i];
+                        if (contactsPool.length > 0) {
+                            const c = contactsPool.pop();
+                            bullet2CocosVec3(c.contactA, BULLET.btManifoldPoint_get_m_positionWorldOnA(cq));
+                            bullet2CocosVec3(c.contactB, BULLET.btManifoldPoint_get_m_positionWorldOnB(cq));
+                            bullet2CocosVec3(c.normal, BULLET.btManifoldPoint_get_m_normalWorldOnB(cq));
+                            CollisionEventObject.contacts.push(c);
+                        } else {
+                            const c = {
+                                contactA: bullet2CocosVec3(new Vec3(), BULLET.btManifoldPoint_get_m_positionWorldOnA(cq)),
+                                contactB: bullet2CocosVec3(new Vec3(), BULLET.btManifoldPoint_get_m_positionWorldOnB(cq)),
+                                normal: bullet2CocosVec3(new Vec3(), BULLET.btManifoldPoint_get_m_normalWorldOnB(cq)),
+                            };
+                            CollisionEventObject.contacts.push(c);
+                        }
                     }
 
                     CollisionEventObject.selfCollider = collider0;
@@ -349,20 +363,20 @@ export class BulletWorld implements IPhysicsWorld {
 
                             for (let i = 0; i < data.contacts.length; i++) {
                                 const cq = data.contacts[i] as Ammo.btManifoldPoint;
-                                // if (contactsPool.length > 0) {
-                                //     const c = contactsPool.pop();
-                                //     bullet2CocosVec3(c.contactA, cq.m_positionWorldOnA);
-                                //     bullet2CocosVec3(c.contactB, cq.m_positionWorldOnB);
-                                //     bullet2CocosVec3(c.normal, cq.m_normalWorldOnB);
-                                //     CollisionEventObject.contacts.push(c);
-                                // } else {
-                                //     const c = {
-                                //         contactA: bullet2CocosVec3(new Vec3(), cq.m_positionWorldOnA),
-                                //         contactB: bullet2CocosVec3(new Vec3(), cq.m_positionWorldOnB),
-                                //         normal: bullet2CocosVec3(new Vec3(), cq.m_normalWorldOnB),
-                                //     };
-                                //     CollisionEventObject.contacts.push(c);
-                                // }
+                                if (contactsPool.length > 0) {
+                                    const c = contactsPool.pop();
+                                    bullet2CocosVec3(c.contactA, BULLET.btManifoldPoint_get_m_positionWorldOnA(cq));
+                                    bullet2CocosVec3(c.contactB, BULLET.btManifoldPoint_get_m_positionWorldOnB(cq));
+                                    bullet2CocosVec3(c.normal, BULLET.btManifoldPoint_get_m_normalWorldOnB(cq));
+                                    CollisionEventObject.contacts.push(c);
+                                } else {
+                                    const c = {
+                                        contactA: bullet2CocosVec3(new Vec3(), BULLET.btManifoldPoint_get_m_positionWorldOnA(cq)),
+                                        contactB: bullet2CocosVec3(new Vec3(), BULLET.btManifoldPoint_get_m_positionWorldOnB(cq)),
+                                        normal: bullet2CocosVec3(new Vec3(), BULLET.btManifoldPoint_get_m_normalWorldOnB(cq)),
+                                    };
+                                    CollisionEventObject.contacts.push(c);
+                                }
                             }
 
                             CollisionEventObject.type = 'onCollisionExit';

@@ -186,8 +186,6 @@ export class BulletSharedBody {
         BULLET.btCollisionObject_setUserIndex(this.ghost, this.ghostStruct.id);
 
         /** DEBUG */
-        // this.body.setActivationState(AmmoCollisionObjectStates.DISABLE_DEACTIVATION);
-        // this.ghost.setActivationState(AmmoCollisionObjectStates.DISABLE_DEACTIVATION);
         BULLET.btCollisionObject_forceActivationState(this.body, btCollisionObjectStates.DISABLE_DEACTIVATION);
         BULLET.btCollisionObject_forceActivationState(this.ghost, btCollisionObjectStates.DISABLE_DEACTIVATION);
     }
