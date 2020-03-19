@@ -178,28 +178,29 @@ export class BulletWorld implements IPhysicsWorld {
      * @return True if any body was hit.
      */
     raycastClosest (worldRay: ray, options: IRaycastOptions, result: PhysicsRayResult): boolean {
-        // let from = cocos2BulletVec3(this.closeHitCB.m_rayFromWorld, worldRay.o);
-        // worldRay.computeHit(v3_0, options.maxDistance);
-        // let to = cocos2BulletVec3(this.closeHitCB.m_rayToWorld, v3_0);
+        const ptr = this.closeHitCB;
+        const from = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayFromWorld(ptr), worldRay.o);
+        worldRay.computeHit(v3_0, options.maxDistance);
+        const to = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayToWorld(ptr), v3_0);
+        BULLET.RayResultCallback_set_m_collisionFilterGroup(ptr, -1);
+        BULLET.RayResultCallback_set_m_collisionFilterMask(ptr, options.mask);
+        BULLET.RayResultCallback_set_m_closestHitFraction(ptr, 1);
+        BULLET.RayResultCallback_set_m_collisionObject(ptr, null);
 
-        // this.closeHitCB.m_collisionFilterGroup = -1;
-        // this.closeHitCB.m_collisionFilterMask = options.mask;
-        // this.closeHitCB.m_closestHitFraction = 1;
-        // (this.closeHitCB.m_collisionObject as any) = null;
-
-        // this._btWorld.rayTest(from, to, this.closeHitCB);
-        // if (this.closeHitCB.hasHit()) {
-        //     const btObj = this.closeHitCB.m_collisionObject;
-        //     const index = btObj.getUserIndex();
-        //     const shared = BulletInstance.bodyAndGhosts['KEY' + index];
-        //     const shapeIndex = this.closeHitCB.m_shapePart;
-        //     const shape = shared.wrappedShapes[shapeIndex];
-        //     bullet2CocosVec3(v3_0, this.closeHitCB.m_hitPointWorld);
-        //     bullet2CocosVec3(v3_1, this.closeHitCB.m_hitNormalWorld);
-        //     const distance = Vec3.distance(worldRay.o, v3_0);
-        //     result._assign(v3_0, distance, shape.collider, v3_1);
-        //     return true;
-        // }
+        BULLET.btCollisionWorld_rayTest(this._btWorld, from, to, ptr);
+        const hasHit = BULLET.RayResultCallback_hasHit(ptr);
+        if (hasHit) {
+            const btObj = BULLET.RayResultCallback_get_m_collisionObject(ptr);
+            const index = BULLET.btCollisionObject_getUserIndex(btObj);
+            const shared = BulletInstance.bodyAndGhosts['KEY' + index];
+            const shapeIndex = ptr.m_shapePart;
+            const shape = shared.wrappedShapes[shapeIndex];
+            bullet2CocosVec3(v3_0, ptr.m_hitPointWorld);
+            bullet2CocosVec3(v3_1, ptr.m_hitNormalWorld);
+            const distance = Vec3.distance(worldRay.o, v3_0);
+            result._assign(v3_0, distance, shape.collider, v3_1);
+            return true;
+        }
         return false;
     }
 
