@@ -15,13 +15,20 @@ export class BulletShape implements IBaseShape {
 
     setMaterial (v: PhysicMaterial | null) {
         if (!this._isTrigger && this._isEnabled && v) {
-            // if (this._btCompound) {
-            //     const rollingFriction = 0.1;
-            //     this._btCompound.setMaterial(this._index, v.friction, v.restitution, rollingFriction);
-            // } else {
-            //     this._sharedBody.body.setFriction(v.friction);
-            //     this._sharedBody.body.setRestitution(v.restitution);
-            // }
+            const rollingFriction = 0.1;
+            if (this._btCompound) {
+                // TODO:
+                // this._btCompound.setMaterial(this._index, v.friction, v.restitution, rollingFriction);
+            } else {
+                BULLET.btCollisionObject_setFriction(this._sharedBody.body, v.friction);
+                BULLET.btCollisionObject_setRestitution(this._sharedBody.body, v.restitution);
+                BULLET.btCollisionObject_setRollingFriction(this._sharedBody.body, rollingFriction);
+            }
+
+            
+            BULLET.btCollisionObject_setFriction(this._sharedBody.body, v.friction);
+            BULLET.btCollisionObject_setRestitution(this._sharedBody.body, v.restitution);
+            BULLET.btCollisionObject_setRollingFriction(this._sharedBody.body, rollingFriction);
         }
     }
 
@@ -117,18 +124,7 @@ export class BulletShape implements IBaseShape {
         this._sharedBody.reference = false;
         this._btCompound = null;
         (this._collider as any) = null;
-        // const shape = Ammo.castObject(this._btShape, Ammo.btCollisionShape);
-        // shape.wrapped = null;
-        // Ammo.destroy(this.transform);
-        // Ammo.destroy(this.pos);
-        // Ammo.destroy(this.quat);
-        // Ammo.destroy(this.scale);
-        // Ammo.destroy(this._btShape);
-        // ammoDeletePtr(this.pos, Ammo.btVector3);
-        // ammoDeletePtr(this.quat, Ammo.btQuaternion);
-        // ammoDeletePtr(this.scale, Ammo.btVector3);
-        // ammoDeletePtr(this.transform, Ammo.btTransform);
-        // ammoDeletePtr(this._btShape, Ammo.btCollisionShape);
+        BULLET.btCollisionShape_destroy(this._btShape);
         (this._btShape as any) = null;
         (this.transform as any) = null;
         (this.pos as any) = null;
