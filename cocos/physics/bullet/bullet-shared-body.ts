@@ -169,6 +169,7 @@ export class BulletSharedBody {
         }
         BulletInstance.bodyStructs['KEY' + this.bodyStruct.id] = this.bodyStruct;
         BULLET.btCollisionObject_setUserIndex(this.body, this.bodyStruct.id);
+        BULLET.btRigidBody_setSleepingThresholds(this.body, 0.0001, 0.0001);
 
         /** ghost struct */
         const ghost = BULLET.btCollisionObject_create();

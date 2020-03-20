@@ -33,7 +33,9 @@ export class BulletRigidBody implements IRigidBody {
         // See https://studiofreya.com/game-maker/bullet-physics/bullet-physics-how-to-change-body-mass/
         const localInertia = this._sharedBody.bodyStruct.localInertia;
         BULLET.btVector3_setValue(localInertia, 1.6666666269302368, 1.6666666269302368, 1.6666666269302368);
-        BULLET.btCollisionShape_calculateLocalInertia(this._btCompoundShape, value, localInertia);
+        if (BULLET.btCompoundShape_getNumChildShapes(this._btCompoundShape) > 0) {
+            BULLET.btCollisionShape_calculateLocalInertia(this._btCompoundShape, value, localInertia);
+        }
         BULLET.btRigidBody_setMassProps(this.impl, value, localInertia);
         BULLET.btRigidBody_updateInertiaTensor(this.impl);
         this._sharedBody.updateByReAdd();
@@ -178,7 +180,7 @@ export class BulletRigidBody implements IRigidBody {
     }
 
     setLinearVelocity (value: Vec3): void {
-        cocos2BulletVec3(BULLET.btRigidBody_getLinearVelocity(this.impl), value);
+        BULLET.btRigidBody_setLinearVelocity(this.impl, cocos2BulletVec3(this._btVec3_0, value));
     }
 
     getAngularVelocity (out: Vec3): Vec3 {
@@ -186,7 +188,7 @@ export class BulletRigidBody implements IRigidBody {
     }
 
     setAngularVelocity (value: Vec3): void {
-        cocos2BulletVec3(BULLET.btRigidBody_setAngularVelocity(this.impl), value);
+        BULLET.btRigidBody_setAngularVelocity(this.impl, cocos2BulletVec3(this._btVec3_0, value));
     }
 
     /** dynamic */

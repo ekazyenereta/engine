@@ -23,6 +23,9 @@ export class BulletShape implements IBaseShape {
                 BULLET.btCollisionObject_setRestitution(this._sharedBody.body, v.restitution);
                 BULLET.btCollisionObject_setRollingFriction(this._sharedBody.body, rollingFriction);
             }
+            // BULLET.btCollisionObject_setFriction(this._sharedBody.body, v.friction);
+            // BULLET.btCollisionObject_setRestitution(this._sharedBody.body, v.restitution);
+            // BULLET.btCollisionObject_setRollingFriction(this._sharedBody.body, rollingFriction);
         }
     }
 
@@ -165,9 +168,10 @@ export class BulletShape implements IBaseShape {
         }
         if (compound != null) {
             BULLET.btCompoundShape_addChildShape(compound, this.transform, this._btShape);
-            this._index = BULLET.btCompoundShape_getNumChildShapes(compound) - 1;
+            this._index = BULLET.btCompoundShape_getNumChildShapes(compound) - 1;            
         }
         this._btCompound = compound;
+        BULLET.btCollisionShape_setUserIndex(this.impl, this._index);
     }
 
     updateScale () {

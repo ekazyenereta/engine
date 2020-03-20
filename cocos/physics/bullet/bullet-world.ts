@@ -75,7 +75,7 @@ export class BulletWorld implements IPhysicsWorld {
             this.bodies[i].syncPhysicsToScene();
         }
 
-        // this.emitEvents();
+        this.emitEvents();
 
         // sync scene to physics again
         for (let i = 0; i < this.ghosts.length; i++) {
@@ -93,20 +93,6 @@ export class BulletWorld implements IPhysicsWorld {
         const from = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayFromWorld(ptr), worldRay.o);
         worldRay.computeHit(v3_0, options.maxDistance);
         const to = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayToWorld(ptr), v3_0);
-        // BULLET.RayResultCallback_set_m_collisionFilterGroup(ptr, -1);
-        // BULLET.RayResultCallback_set_m_collisionFilterMask(ptr, options.mask);
-        // BULLET.RayResultCallback_set_m_closestHitFraction(ptr, 1);
-        // BULLET.RayResultCallback_set_m_collisionObject(ptr, null);
-        // this.allHitsCB.m_shapePart = -1;
-        // (this.allHitsCB.m_collisionObject as any) = null;
-        // this.allHitsCB.m_shapeParts.clear();
-        // this.allHitsCB.m_hitFractions.clear();
-        // this.allHitsCB.m_collisionObjects.clear();
-        // // TODO: typing
-        // const hp = (this.allHitsCB.m_hitPointWorld as any);
-        // const hn = (this.allHitsCB.m_hitNormalWorld as any);
-        // hp.clear();
-        // hn.clear();
         BULLET.RayResultCallback_reset(ptr, options.group, options.mask);
         BULLET.AllHitsRayResultCallback_reset(ptr);
         BULLET.btCollisionWorld_rayTest(this._btWorld, from, to, ptr);
@@ -144,10 +130,6 @@ export class BulletWorld implements IPhysicsWorld {
         const from = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayFromWorld(ptr), worldRay.o);
         worldRay.computeHit(v3_0, options.maxDistance);
         const to = cocos2BulletVec3(BULLET.AllHitsRayResultCallback_get_m_rayToWorld(ptr), v3_0);
-        // BULLET.RayResultCallback_set_m_collisionFilterGroup(ptr, -1);
-        // BULLET.RayResultCallback_set_m_collisionFilterMask(ptr, options.mask);
-        // BULLET.RayResultCallback_set_m_closestHitFraction(ptr, 1);
-        // BULLET.RayResultCallback_set_m_collisionObject(ptr, null);
         BULLET.RayResultCallback_reset(ptr, options.group, options.mask);
         BULLET.btCollisionWorld_rayTest(this._btWorld, from, to, ptr);
         const hasHit = BULLET.RayResultCallback_hasHit(ptr);
@@ -206,28 +188,28 @@ export class BulletWorld implements IPhysicsWorld {
         // collect
         const numManifolds = BULLET.btDispatcher_getNumManifolds(this._btDispatcher);
         for (let i = 0; i < numManifolds; i++) {
-            const manifold = BULLET.btDispatcher_getManifoldByIndexInternal(this._btDispatcher, i);
-            const body0 = BULLET.btPersistentManifold_getBody0(manifold);
-            const body1 = BULLET.btPersistentManifold_getBody1(manifold);
+            const m = BULLET.btDispatcher_getManifoldByIndexInternal(this._btDispatcher, i);
+            const body0 = BULLET.btPersistentManifold_getBody0(m);
+            const body1 = BULLET.btPersistentManifold_getBody1(m);
             const index0 = BULLET.btCollisionObject_getUserIndex(body0);
             const index1 = BULLET.btCollisionObject_getUserIndex(body1);
-            const numContacts = BULLET.btPersistentManifold_getNumContacts(manifold);
+            const numContacts = BULLET.btPersistentManifold_getNumContacts(m);
             for (let j = 0; j < numContacts; j++) {
-                const manifoldPoint = BULLET.btPersistentManifold_getContactPoint(j);
-                const d = BULLET.btManifoldPoint_getDistance(manifoldPoint);
+                const mp = BULLET.btPersistentManifold_getContactPoint(m, j);
+                const d = BULLET.btManifoldPoint_getDistance(mp);
                 if (d <= 0.0001) {
-                    const s0 = BULLET.btManifoldPoint_getShape0();
-                    const s1 = BULLET.btManifoldPoint_getShape1();
+                    const s0 = BULLET.btManifoldPoint_getShape0(mp);
+                    const s1 = BULLET.btManifoldPoint_getShape1(mp);
                     let sindex0 = 0;
                     let sindex1 = 0;
                     if (BULLET.btCollisionShape_isCompound(s0)) {
-                        sindex0 = BULLET.btManifoldPoint_get_m_index0(manifoldPoint);
+                        sindex0 = BULLET.btManifoldPoint_get_m_index0(mp);
                     } else {
                         sindex0 = BULLET.btCollisionShape_getUserIndex(s0);
                     }
 
                     if (BULLET.btCollisionShape_isCompound(s1)) {
-                        sindex1 = BULLET.btManifoldPoint_get_m_index1(manifoldPoint);
+                        sindex1 = BULLET.btManifoldPoint_get_m_index1(mp);
                     } else {
                         sindex1 = BULLET.btCollisionShape_getUserIndex(s1);
                     }
@@ -250,7 +232,7 @@ export class BulletWorld implements IPhysicsWorld {
                             }
                         );
                     }
-                    item.contacts.push(manifoldPoint);
+                    item.contacts.push(mp);
                 }
             }
         }

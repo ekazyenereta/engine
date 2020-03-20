@@ -77,7 +77,6 @@ export class BulletBvhTriangleMeshShape extends BulletShape implements ITrimeshS
                 // BULLET.btGImpactMeshShape_updateBound(this._btShape);
                 cocos2BulletVec3(this.scale, this._collider.node.worldScale);
                 BULLET.btCollisionShape_setLocalScaling(this._btShape, this.scale);
-                this.setWrapper();
                 this.setCompound(this._btCompound);
             } else {
                 this._btShape = BulletConstant.instance.EMPTY_SHAPE;
@@ -93,11 +92,6 @@ export class BulletBvhTriangleMeshShape extends BulletShape implements ITrimeshS
 
     onComponentSet () {
         this.setMesh(this.collider.mesh);
-    }
-
-    setCompound (compound: number | null) {
-        super.setCompound(compound);
-        BULLET.btCollisionShape_setUserIndex(this.impl, this._index);
     }
 
     updateScale () {
