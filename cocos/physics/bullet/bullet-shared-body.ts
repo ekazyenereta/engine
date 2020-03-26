@@ -237,7 +237,7 @@ export class BulletSharedBody {
 
             if (this.node.hasChangedFlags & TransformBit.SCALE) {
                 for (let i = 0; i < this.bodyStruct.wrappedShapes.length; i++) {
-                    this.bodyStruct.wrappedShapes[i].updateScale();
+                    this.bodyStruct.wrappedShapes[i].setScale();
                 }
             }
         }
@@ -273,7 +273,7 @@ export class BulletSharedBody {
 
             if (this.node.hasChangedFlags & TransformBit.SCALE) {
                 for (let i = 0; i < this.ghostStruct.wrappedShapes.length; i++) {
-                    this.ghostStruct.wrappedShapes[i].updateScale();
+                    this.ghostStruct.wrappedShapes[i].setScale();
                 }
             }
         }
@@ -285,7 +285,7 @@ export class BulletSharedBody {
         cocos2BulletQuat(this.bodyStruct.worldQuat, this.node.worldRotation);
         BULLET.btTransform_setRotation(wt, this.bodyStruct.worldQuat);
         for (let i = 0; i < this.bodyStruct.wrappedShapes.length; i++) {
-            this.bodyStruct.wrappedShapes[i].updateScale();
+            this.bodyStruct.wrappedShapes[i].setScale();
         }
         // this.body.activate();
     }
@@ -296,7 +296,7 @@ export class BulletSharedBody {
         cocos2BulletQuat(this.ghostStruct.worldQuat, this.node.worldRotation);
         BULLET.btTransform_setRotation(wt1, this.ghostStruct.worldQuat);
         for (let i = 0; i < this.ghostStruct.wrappedShapes.length; i++) {
-            this.ghostStruct.wrappedShapes[i].updateScale();
+            this.ghostStruct.wrappedShapes[i].setScale();
         }
         // this.ghost.activate();
     }

@@ -39,23 +39,8 @@ export class PhysicsSystem extends System {
     }
     set allowSleep (v: boolean) {
         this._allowSleep = v;
-        if (!EDITOR && !PHYSICS_BUILTIN) {
-            this.physicsWorld.setAllowSleep(v);
-        }
+        this.physicsWorld.setAllowSleep(v);
     }
-
-    // shielding for alpha version
-    // /**
-    //  * @zh
-    //  * 获取或设置是否只运行一步。
-    //  * @param {boolean} b
-    //  */
-    // get singleStep () {
-    //     return this._singleStep;
-    // }
-    // set singleStep (b: boolean) {
-    //     this._singleStep = b;
-    // }
 
     /**
      * @zh
@@ -95,38 +80,23 @@ export class PhysicsSystem extends System {
 
     /**
      * @zh
-     * 获取或设置物理世界的重力数值，默认为 (0, -10, 0)
+     * 获取或设置物理世界的重力数值，默认为 (0, -10, 0)。
      */
     get gravity (): Vec3 {
         return this._gravity;
     }
     set gravity (gravity: Vec3) {
         this._gravity.set(gravity);
-        if (!EDITOR && !PHYSICS_BUILTIN) {
-            this.physicsWorld.setGravity(gravity);
-        }
+        this.physicsWorld.setGravity(gravity);
     }
 
     /**
      * @zh
-     * 获取全局的默认物理材质，注意：builtin 时为 null
+     * 获取全局的默认物理材质。
      */
-    get defaultMaterial (): PhysicMaterial | null {
+    get defaultMaterial (): PhysicMaterial{
         return this._material;
     }
-
-    // shielding for alpha version
-    // /**
-    //  * @zh
-    //  * 获取或设置物理每秒模拟的帧率。
-    //  */
-    // get frameRate () {
-    //     return this._frameRate;
-    // }
-    // set frameRate (value: number) {
-    //     this._frameRate = value;
-    //     this._deltaTime = 1 / this._frameRate;
-    // }
 
     private static readonly _instance: PhysicsSystem;
     static get instance () {
@@ -142,15 +112,11 @@ export class PhysicsSystem extends System {
 
     private _enable = true;
     private _allowSleep = true;
-    private readonly _gravity = new Vec3(0, -10, 0);
     private _maxSubStep = 1;
     private _deltaTime = 1.0 / 60.0;
     private _useFixedTime = true;
-
-    // private _frameRate = 60;
-    // private _singleStep = false;
-
-    private readonly _material!: PhysicMaterial;
+    private readonly _gravity = new Vec3(0, -10, 0);
+    private readonly _material: PhysicMaterial;
 
     private readonly raycastOptions: IRaycastOptions = {
         'group': -1,
@@ -166,15 +132,13 @@ export class PhysicsSystem extends System {
     private constructor () {
         super();
         this.physicsWorld = createPhysicsWorld();
-        if (!PHYSICS_BUILTIN) {
-            this.gravity = this._gravity;
-            this.allowSleep = this._allowSleep;
-            this._material = new PhysicMaterial();
-            this._material.friction = 0.5;
-            this._material.restitution = 0.0;
-            this._material.on('physics_material_update', this._updateMaterial, this);
-            this.physicsWorld.setDefaultMaterial(this._material);
-        }
+        this.gravity = this._gravity;
+        this.allowSleep = this._allowSleep;
+        this._material = new PhysicMaterial();
+        this._material.friction = 0.5;
+        this._material.restitution = 0.0;
+        this._material.on('physics_material_update', this._updateMaterial, this);
+        this.physicsWorld.setDefaultMaterial(this._material);
     }
 
     /**
@@ -239,16 +203,14 @@ export class PhysicsSystem extends System {
     }
 
     private _updateMaterial () {
-        if (!PHYSICS_BUILTIN) {
-            this.physicsWorld.setDefaultMaterial(this._material);
-        }
+        this.physicsWorld.setDefaultMaterial(this._material);
     }
 }
 
 // if (PHYSICS_BUILTIN || PHYSICS_CANNON || PHYSICS_AMMO) {
-    director.on(Director.EVENT_INIT, function () {
-        const sys = new cc.PhysicsSystem();
-        cc.PhysicsSystem._instance = sys;
-        director.registerSystem(PhysicsSystem.ID, sys, 0);
-    });
+director.on(Director.EVENT_INIT, function () {
+    const sys = new cc.PhysicsSystem();
+    cc.PhysicsSystem._instance = sys;
+    director.registerSystem(PhysicsSystem.ID, sys, 0);
+});
 // }

@@ -48,8 +48,8 @@ export class BulletBoxShape extends BulletShape implements IBoxShape {
         (this._halfExt as any) = null;
     }
 
-    updateScale () {
-        super.updateScale();
+    setScale () {
+        super.setScale();
         this.setSize(this.collider.size);
     }
 

@@ -1,13 +1,13 @@
 import { BULLET } from './../bullet-export';
 import { Vec3, absMax } from "../../../core";
 import { BulletShape } from "./bullet-shape";
-import { CapsuleColliderComponent } from '../../../../exports/physics-framework';
+import { CylinderColliderComponent } from '../../../../exports/physics-framework';
 import { cocos2BulletVec3 } from '../bullet-util';
 import { btBroadphaseNativeTypes } from '../bullet-enum';
-import { ICapsuleShape } from '../../spec/i-physics-shape';
+import { ICylinderShape } from '../../spec/i-physics-shape';
 import { IVec3Like } from '../../../core/math/type-define';
 
-export class BulletCapsuleShape extends BulletShape implements ICapsuleShape {
+export class BulletCylinderShape extends BulletShape implements ICylinderShape {
 
     setHeight (v: number) {
         this.updateProperties(
@@ -50,12 +50,15 @@ export class BulletCapsuleShape extends BulletShape implements ICapsuleShape {
     }
 
     get collider () {
-        return this._collider as CapsuleColliderComponent;
+        return this._collider as CylinderColliderComponent;
     }
 
+    readonly HALF_EXTENT: number;
+
     constructor () {
-        super(btBroadphaseNativeTypes.CAPSULE_SHAPE_PROXYTYPE);
-        this._btShape = BULLET.btCapsuleShape_create(0.5, 1);
+        super(btBroadphaseNativeTypes.CYLINDER_SHAPE_PROXYTYPE);
+        this.HALF_EXTENT = BULLET.btVector3_create(0.5, 1, 0.5);
+        this._btShape = BULLET.btCylinderShape_create(this.HALF_EXTENT);
     }
 
     onLoad () {
@@ -74,18 +77,19 @@ export class BulletCapsuleShape extends BulletShape implements ICapsuleShape {
         if (upAxis == 1) {
             const wh = height * Math.abs(ws.y);
             const wr = radius * Math.abs(absMax(ws.x, ws.z));
-            const halfH = (wh - wr * 2) / 2;
-            BULLET.btCapsuleShape_updateProp(this.impl, wr, halfH, upAxis);
+            const halfH = wh / 2;
+            BULLET.btCylinderShape_updateProp(this.impl, wr, halfH, upAxis);
         } else if (upAxis == 0) {
             const wh = height * Math.abs(ws.x);
             const wr = radius * Math.abs(absMax(ws.y, ws.z));
-            const halfH = (wh - wr * 2) / 2;
-            BULLET.btCapsuleShape_updateProp(this.impl, wr, halfH, upAxis);
+            const halfH = wh / 2;
+            BULLET.btCylinderShape_updateProp(this.impl, wr, halfH, upAxis);
         } else {
             const wh = height * Math.abs(ws.z);
             const wr = radius * Math.abs(absMax(ws.x, ws.y));
-            const halfH = (wh - wr * 2) / 2;
-            BULLET.btCapsuleShape_updateProp(this.impl, wr, halfH, upAxis);
+            const halfH = wh / 2;
+            BULLET.btCylinderShape_updateProp(this.impl, wr, halfH, upAxis);
         }
     }
+
 }

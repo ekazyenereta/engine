@@ -94,8 +94,8 @@ export class BulletBvhTriangleMeshShape extends BulletShape implements ITrimeshS
         this.setMesh(this.collider.mesh);
     }
 
-    updateScale () {
-        super.updateScale();
+    setScale () {
+        super.setScale();
         cocos2BulletVec3(this.scale, this._collider.node.worldScale);
         BULLET.btCollisionShape_setLocalScaling(this._btShape, this.scale);
         if (this._btCompound) {

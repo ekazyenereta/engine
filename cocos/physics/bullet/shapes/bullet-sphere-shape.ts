@@ -40,8 +40,8 @@ export class BulletSphereShape extends BulletShape implements ISphereShape {
         this.setRadius(this.collider.radius);
     }
 
-    updateScale () {
-        super.updateScale();
+    setScale () {
+        super.setScale();
         this.setRadius(this.collider.radius);
     }
 }

@@ -31,7 +31,7 @@ export function createSphereShape (radius: number): ISphereShape {
 }
 
 export function createCapsuleShape (radius = 0.5, height = 2, dir = 1): ICapsuleShape {
-    if (PHYSICS_BUILTIN || !PHYSICS_CANNON || PHYSICS_AMMO) {
+    if (!PHYSICS_CANNON) {
         if (DEBUG && checkPhysicsModule(CapsuleShape)) { return null as any; }
         return new CapsuleShape(radius, height, dir) as ICapsuleShape;
     } else {
@@ -54,7 +54,7 @@ export function createCapsuleShape (radius = 0.5, height = 2, dir = 1): ICapsule
 }
 
 export function createCylinderShape (radius = 0.5, height = 2, dir = 1): ICylinderShape {
-    if (PHYSICS_CANNON || PHYSICS_AMMO) {
+    if (!PHYSICS_BUILTIN) {
         if (DEBUG && checkPhysicsModule(CylinderShape)) { return null as any; }
         return new CylinderShape(radius, height, dir) as ICylinderShape;
     } else {
@@ -77,7 +77,7 @@ export function createCylinderShape (radius = 0.5, height = 2, dir = 1): ICylind
 }
 
 export function createTrimeshShape (): ITrimeshShape {
-    if (!PHYSICS_BUILTIN || PHYSICS_CANNON || PHYSICS_AMMO) {
+    if (!PHYSICS_BUILTIN) {
         if (DEBUG && checkPhysicsModule(TrimeshShape)) { return null as any; }
         return new TrimeshShape() as ITrimeshShape;
     } else {

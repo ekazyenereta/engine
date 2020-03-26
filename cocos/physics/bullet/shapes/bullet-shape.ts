@@ -23,9 +23,6 @@ export class BulletShape implements IBaseShape {
                 BULLET.btCollisionObject_setRestitution(this._sharedBody.body, v.restitution);
                 BULLET.btCollisionObject_setRollingFriction(this._sharedBody.body, rollingFriction);
             }
-            // BULLET.btCollisionObject_setFriction(this._sharedBody.body, v.friction);
-            // BULLET.btCollisionObject_setRestitution(this._sharedBody.body, v.restitution);
-            // BULLET.btCollisionObject_setRollingFriction(this._sharedBody.body, rollingFriction);
         }
     }
 
@@ -168,36 +165,13 @@ export class BulletShape implements IBaseShape {
         }
         if (compound != null) {
             BULLET.btCompoundShape_addChildShape(compound, this.transform, this._btShape);
-            this._index = BULLET.btCompoundShape_getNumChildShapes(compound) - 1;            
+            this._index = BULLET.btCompoundShape_getNumChildShapes(compound) - 1;
         }
         this._btCompound = compound;
         BULLET.btCollisionShape_setUserIndex(this.impl, this._index);
     }
 
-    updateScale () {
+    setScale () {
         this.setCenter(this._collider.center);
-    }
-
-    /**DEBUG */
-    private static _debugTransform: number;
-    debugTransform (n: Node) {
-        // if (BulletShape._debugTransform == null) {
-        //     BulletShape._debugTransform = BULLET.btTransform();
-        // }
-        // let wt: number;
-        // if (this._isTrigger) {
-        //     wt = this._sharedBody.ghost.getWorldTransform();
-        // } else {
-        //     wt = this._sharedBody.body.getWorldTransform();
-        // }
-        // const lt = this.transform;
-        // BulletShape._debugTransform.setIdentity();
-        // BulletShape._debugTransform.op_mul(wt).op_mul(lt);
-        // let origin = BulletShape._debugTransform.getOrigin();
-        // n.worldPosition = new Vec3(origin.x(), origin.y(), origin.z());
-        // let rotation = BulletShape._debugTransform.getRotation();
-        // n.worldRotation = new Quat(rotation.x(), rotation.y(), rotation.z(), rotation.w());
-        // let scale = this.impl.getLocalScaling();
-        // n.scale = new Vec3(scale.x(), scale.y(), scale.z());
     }
 }
