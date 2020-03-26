@@ -106,7 +106,7 @@ export class BulletSharedBody {
                     (this.bodyStruct.wrappedShapes.length == 0 && this.wrappedBody != null && !this.wrappedBody.rigidBody.enabledInHierarchy)
 
                 if (isRemoveBody) {
-                    // this.body.clearState(); // clear velocity etc.
+                    BULLET.btRigidBody_clearState(this.body); // clear velocity etc.
                     this.bodyIndex = -1;
                     this.wrappedWorld.removeSharedBody(this);
                 }
@@ -124,7 +124,6 @@ export class BulletSharedBody {
             }
         } else {
             if (this.ghostIndex >= 0) {
-                /** remove trigger */
                 const isRemoveGhost = (this.ghostStruct.wrappedShapes.length == 0 && this.ghost);
 
                 if (isRemoveGhost) {
@@ -229,7 +228,7 @@ export class BulletSharedBody {
 
     syncSceneToPhysics () {
         if (this.node.hasChangedFlags) {
-            const wt = BULLET.btCollisionObject_getWorldTransform(this.body);            
+            const wt = BULLET.btCollisionObject_getWorldTransform(this.body);
             cocos2BulletVec3(BULLET.btTransform_getOrigin(wt), this.node.worldPosition)
             cocos2BulletQuat(this.bodyStruct.worldQuat, this.node.worldRotation);
             BULLET.btTransform_setRotation(wt, this.bodyStruct.worldQuat);
@@ -301,17 +300,6 @@ export class BulletSharedBody {
         // this.ghost.activate();
     }
 
-    // private updateGroupMask () {
-    //     const body = this.bodyStruct.body;
-    //     const bodyProxy = body.getBroadphaseHandle();
-    //     bodyProxy.m_collisionFilterGroup = this.collisionFilterGroup;
-    //     bodyProxy.m_collisionFilterMask = this.collisionFilterMask;
-    //     const ghost = this.ghostStruct.ghost;
-    //     const ghostProxy = ghost.getBroadphaseHandle();
-    //     ghostProxy.m_collisionFilterGroup = this.collisionFilterGroup;
-    //     ghostProxy.m_collisionFilterMask = this.collisionFilterMask;
-    // }
-
     updateByReAdd () {
         /**
          * see: https://pybullet.org/Bullet/phpBB3/viewtopic.php?f=9&t=5312&p=19094&hilit=how+to+change+group+mask#p19097
@@ -336,29 +324,18 @@ export class BulletSharedBody {
         const bodyStruct = this.bodyStruct;
         // // Ammo.destroy(bodyStruct.body);
         // Ammo.destroy(bodyStruct.localInertia);
-        // // Ammo.destroy(bodyStruct.motionState);
-        // // Ammo.destroy(bodyStruct.rbInfo);
-        // // Ammo.destroy(bodyStruct.shape);
+        BULLET.btMotionState_destroy(bodyStruct.motionState)
+        BULLET.btRigidBodyConstructionInfo_destroy(bodyStruct.rbInfo);
+        BULLET.btCollisionShape_destroy(bodyStruct.shape);
         // // Ammo.destroy(bodyStruct.startTransform);
         // Ammo.destroy(bodyStruct.worldQuat);
-        // ammoDeletePtr(bodyStruct.motionState, Ammo.btDefaultMotionState);
-        // ammoDeletePtr(bodyStruct.rbInfo, Ammo.btRigidBodyConstructionInfo);
-        // ammoDeletePtr(bodyStruct.body, Ammo.btRigidBody);
-        // ammoDeletePtr(bodyStruct.body, Ammo.btCollisionObject);
-        // ammoDeletePtr(bodyStruct.shape, Ammo.btCompoundShape);
-        // ammoDeletePtr(bodyStruct.startTransform, Ammo.btTransform);
-        // ammoDeletePtr(bodyStruct.localInertia, Ammo.btVector3);
-        // ammoDeletePtr(bodyStruct.worldQuat, Ammo.btQuaternion);
         const key0 = 'KEY' + bodyStruct.id;
         delete BulletInstance.bodyStructs[key0];
 
         const ghostStruct = this.ghostStruct;
         // // Ammo.destroy(ghostStruct.ghost);
-        // // Ammo.destroy(ghostStruct.shape);
+        BULLET.btCollisionShape_destroy(ghostStruct.shape);
         // Ammo.destroy(ghostStruct.worldQuat);
-        // ammoDeletePtr(ghostStruct.ghost, Ammo.btCollisionObject);
-        // ammoDeletePtr(ghostStruct.shape, Ammo.btCompoundShape);
-        // ammoDeletePtr(ghostStruct.worldQuat, Ammo.btQuaternion);
         const key1 = 'KEY' + ghostStruct.id;
         delete BulletInstance.bodyStructs[key1];
 

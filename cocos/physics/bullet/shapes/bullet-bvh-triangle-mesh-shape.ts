@@ -103,4 +103,8 @@ export class BulletBvhTriangleMeshShape extends BulletShape implements ITrimeshS
         }
     }
 
+    onDestroy () {
+        super.onDestroy();
+        if (this._btTriangleMesh) BULLET.btStridingMeshInterface_destroy(this._btTriangleMesh);
+    }
 }

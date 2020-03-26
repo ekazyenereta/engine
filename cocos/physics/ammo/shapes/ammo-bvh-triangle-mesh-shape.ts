@@ -113,4 +113,8 @@ export class AmmoBvhTriangleMeshShape extends AmmoShape implements ITrimeshShape
         }
     }
 
+    onDestroy () {
+        super.onDestroy();
+        if (this._btTriangleMesh) Ammo.destroy(this._btTriangleMesh);
+    }
 }
