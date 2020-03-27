@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@cocos/ammo": "^1.0.4",
-    "@cocos/bullet": "github:JayceLai/cc-bullet#master",
+    "@cocos/bullet": "github:JayceLai/bullet-release#master",
     "@cocos/cannon": "^1.0.6"
   }
 }
