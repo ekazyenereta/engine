@@ -11,6 +11,8 @@ export let TrimeshShape: any;
 export let CylinderShape: any;
 export let ConeShape: any;
 export let TerrianShape: any;
+export let ConeShape: any;
+export let SimpleShape: any;
 
 export interface IPhysicsWrapperObject {
     world: any,
@@ -22,6 +24,8 @@ export interface IPhysicsWrapperObject {
     cylinder?: any,
     cone?: any,
     terrian?: any,
+    cone?: any,
+    simple?: any,
 }
 
 export function instantiate (obj: IPhysicsWrapperObject) {
@@ -34,4 +38,6 @@ export function instantiate (obj: IPhysicsWrapperObject) {
     if (obj.cylinder) { CylinderShape = obj.cylinder; }
     if (obj.cone) { ConeShape = obj.cone; }
     if (obj.terrian) { TerrianShape = obj.terrian; }
+    if (obj.cone) { ConeShape = obj.cone; }
+    if (obj.simple) { SimpleShape = obj.simple; }
 }
