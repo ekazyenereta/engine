@@ -166,7 +166,8 @@ export class AmmoSharedBody {
             'shape': bodyShape,
             'rbInfo': rbInfo,
             'worldQuat': bodyQuat,
-            'wrappedShapes': []
+            'wrappedShapes': [],
+            'useCompound': false,
         }
         AmmoInstance.bodyStructs['KEY' + this.bodyStruct.id] = this.bodyStruct;
         this.body.setUserIndex(this.bodyStruct.id);
@@ -186,7 +187,8 @@ export class AmmoSharedBody {
         AmmoInstance.ghostStructs['KEY' + this.ghostStruct.id] = this.ghostStruct;
         this.ghost.setUserIndex(this.ghostStruct.id);
 
-        /** DEBUG */
+        if (Ammo['CC_CONFIG']['ignoreSelfBody']) this.ghost.setIgnoreCollisionCheck(this.body, true);
+
         this.body.setActivationState(AmmoCollisionObjectStates.DISABLE_DEACTIVATION);
         this.ghost.setActivationState(AmmoCollisionObjectStates.DISABLE_DEACTIVATION);
     }
@@ -203,7 +205,23 @@ export class AmmoSharedBody {
             const index = this.bodyStruct.wrappedShapes.indexOf(v);
             if (index < 0) {
                 this.bodyStruct.wrappedShapes.push(v);
-                v.setCompound(this.bodyCompoundShape);
+                if (this.bodyStruct.useCompound) {
+                    v.setCompound(this.bodyCompoundShape);
+                } else {
+                    const l = this.bodyStruct.wrappedShapes.length;
+                    if (l == 1 && v.collider.center.equals3f(0, 0, 0)) {
+                        this.body.setCollisionShape(v.impl);
+                        this.updateByReAdd();
+                    } else {
+                        this.bodyStruct.useCompound = true;
+                        for (let i = 0; i < l; i++) {
+                            const childShape = this.bodyStruct.wrappedShapes[i];
+                            childShape.setCompound(this.bodyCompoundShape);
+                        }
+                        this.body.setCollisionShape(this.bodyStruct.shape);
+                        this.updateByReAdd();
+                    }
+                }
                 this.bodyEnabled = true;
             }
         }
