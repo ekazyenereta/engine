@@ -9,6 +9,7 @@ import { CannonTrimeshShape } from './shapes/cannon-trimesh-shape';
 import { CannonCyliderShape } from './shapes/cannon-cylinder-shape';
 import { CannonConeShape } from './shapes/cannon-cone-shape';
 import { CannonTerrianShape } from './shapes/cannon-terrian-shape';
+import { CannonSimpleShape } from './shapes/cannon-simple-shape';
 
 
 if (PHYSICS_CANNON) {
@@ -21,5 +22,6 @@ if (PHYSICS_CANNON) {
         cylinder: CannonCyliderShape,
         cone: CannonConeShape,
         terrian: CannonTerrianShape,
+        simple: CannonSimpleShape,
     });
 }
