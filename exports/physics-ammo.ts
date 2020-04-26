@@ -34,4 +34,10 @@ if (window.atob == null) {
 import Ammo from '@cocos/ammo';
 window.Ammo = Ammo;
 
+//polyfill config
+Ammo['CC_CONFIG'] = {
+    'rollingFriction': 0.1,
+    'ignoreSelfBody': true,
+}
+
 import '../cocos/physics/ammo/instantiate';
