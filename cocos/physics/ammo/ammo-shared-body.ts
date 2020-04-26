@@ -209,7 +209,7 @@ export class AmmoSharedBody {
                     v.setCompound(this.bodyCompoundShape);
                 } else {
                     const l = this.bodyStruct.wrappedShapes.length;
-                    if (l == 1 && v.collider.center.equals3f(0, 0, 0)) {
+                    if (l == 1 && !v.needCompound()) {
                         this.body.setCollisionShape(v.impl);
                         this.updateByReAdd();
                     } else {

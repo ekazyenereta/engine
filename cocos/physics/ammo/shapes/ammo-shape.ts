@@ -196,6 +196,16 @@ export class AmmoShape implements IBaseShape {
         }
     }
 
+    needCompound () {
+        if (this.type == AmmoBroadphaseNativeTypes.TERRAIN_SHAPE_PROXYTYPE)
+            return true;
+
+        if (this._collider.center.equals(Vec3.ZERO))
+            return false;
+
+        return true;
+    }
+
     /**DEBUG */
     private static _debugTransform: Ammo.btTransform | null;
     debugTransform (n: Node) {

@@ -95,8 +95,8 @@ export class AmmoTerrainShape extends AmmoShape implements ITerrianShape {
         this.updateCompoundTransform();
     }
 
-    setScale () {
-        // TODO: handle scale
-    }
+    // setScale () {
+    //     // TODO: handle scale
+    // }
 
 }
