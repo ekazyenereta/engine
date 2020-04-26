@@ -7,6 +7,7 @@ import { CannonBoxShape } from './shapes/cannon-box-shape';
 import { CannonSphereShape } from './shapes/cannon-sphere-shape';
 import { CannonTrimeshShape } from './shapes/cannon-trimesh-shape';
 import { CannonCyliderShape } from './shapes/cannon-cylinder-shape';
+import { CannonConeShape } from './shapes/cannon-cone-shape';
 import { CannonTerrianShape } from './shapes/cannon-terrian-shape';
 
 
@@ -18,6 +19,7 @@ if (PHYSICS_CANNON) {
         world: CannonWorld,
         trimesh: CannonTrimeshShape,
         cylinder: CannonCyliderShape,
+        cone: CannonConeShape,
         terrian: CannonTerrianShape,
     });
 }
