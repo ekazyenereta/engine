@@ -16,6 +16,7 @@ import { RigidBodyComponent } from './components/rigid-body-component';
 import { ConstantForce } from './components/constant-force';
 import { TerrainColliderComponent } from './components/collider/terrain-collider-component';
 import { SimpleColliderComponent } from './components/collider/simple-collider-component';
+import { CharacterController } from './components/character-controller';
 
 export {
     PhysicsSystem,
@@ -31,11 +32,11 @@ export {
     TerrainColliderComponent,
     SimpleColliderComponent,
 
-    RigidBodyComponent,
-
     PhysicMaterial,
-
-    ConstantForce
+    
+    RigidBodyComponent,
+    ConstantForce,
+    CharacterController,
 };
 
 cc.PhysicsSystem = PhysicsSystem;

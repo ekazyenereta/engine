@@ -9,6 +9,7 @@ import { IBoxShape, ISphereShape, ICapsuleShape, ITrimeshShape, ICylinderShape, 
 import { IPhysicsWorld } from '../spec/i-physics-world';
 import { errorID, warnID, warn } from '../../core';
 import { EDITOR, DEBUG, PHYSICS_BUILTIN, PHYSICS_AMMO, TEST, PHYSICS_CANNON } from 'internal:constants';
+import { ICharacterController } from '../spec/i-character-controller';
 
 export function createPhysicsWorld (): IPhysicsWorld {
     if (DEBUG && checkPhysicsModule(PhysicsWorld)) { return null as any; }
@@ -161,6 +162,10 @@ export function createSimpleShape (): ISimpleShape {
             onDestroy: func
         } as any
     }
+}
+
+export function createCharacterController (): ICharacterController {
+    return {} as ICharacterController;
 }
 
 export function checkPhysicsModule (obj: any) {

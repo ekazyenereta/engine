@@ -215,7 +215,7 @@ export class PhysicsSystem extends System {
         }
 
         this._timeSinceLastUpdate = this._timeReset ? 0 : deltaTime;
-        this.physicsWorld.emitEvents();
+        // this.physicsWorld.emitEvents();
         director.emit(Director.EVENT_BEFORE_PHYSICS);
         this.physicsWorld.syncSceneToPhysics();
         if (this._useFixedTime) {
