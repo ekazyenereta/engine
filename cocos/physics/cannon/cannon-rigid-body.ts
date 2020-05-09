@@ -180,6 +180,11 @@ export class CannonRigidBody implements IRigidBody {
         this.impl.torque.setZero();
     }
 
+    clearState (): void {
+        this.clearVelocity();
+        this.clearForces();
+    }
+
     wakeUp (): void {
         return this.impl.wakeUp();
     }
