@@ -179,6 +179,8 @@ export class CannonShape implements IBaseShape {
     }
 
     setOffsetAndOrient (offset: CANNON.Vec3, Orient: CANNON.Quaternion) {
+        offset.copy(this._offset);
+        Orient.copy(this._orient);
         this._offset = offset;
         this._orient = Orient;
     }
