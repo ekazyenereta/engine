@@ -171,12 +171,22 @@ export class ColliderComponent extends Component implements IEventTarget {
         return this._boundingSphere;
     }
 
+    public get needTriggerEvent () {
+        return this._needTriggerEvent;
+    }
+
+    public get needCollisionEvent () {
+        return this._needCollisionEvent;
+    }
+
     /// PRIVATE PROPERTY ///
 
     protected _shape!: IBaseShape;
     protected _aabb: aabb | null = null;
     protected _boundingSphere: sphere | null = null;
     protected _isSharedMaterial: boolean = true;
+    protected _needTriggerEvent: boolean = false;
+    protected _needCollisionEvent: boolean = false;
 
     @property({ type: PhysicMaterial })
     protected _material: PhysicMaterial | null = null;
@@ -198,6 +208,9 @@ export class ColliderComponent extends Component implements IEventTarget {
      * @param useCapture - 可选参数，当设置为 true，监听器将在捕获阶段触发，否则将在冒泡阶段触发。默认为 false。
      */
     public on (type: TriggerEventType | CollisionEventType, callback: TriggerCallback | CollisionCallback, target?: Object, useCapture?: any): any {
+        const ret = EventTarget.prototype.on.call(this, type, callback, target);
+        this._updateNeedEvent(type);
+        return ret;
     }
 
     /**
@@ -209,6 +222,9 @@ export class ColliderComponent extends Component implements IEventTarget {
      * @param useCapture - 可选参数，当设置为 true，监听器将在捕获阶段触发，否则将在冒泡阶段触发。默认为 false。
      */
     public off (type: TriggerEventType | CollisionEventType, callback: TriggerCallback | CollisionCallback, target?: Object, useCapture?: any) {
+        const ret = EventTarget.prototype.off.call(this, type, callback, target);
+        this._updateNeedEvent();
+        return ret;
     }
 
     /**
@@ -220,15 +236,17 @@ export class ColliderComponent extends Component implements IEventTarget {
      * @param useCapture - 可选参数，当设置为 true，监听器将在捕获阶段触发，否则将在冒泡阶段触发。默认为 false。
      */
     public once (type: TriggerEventType | CollisionEventType, callback: TriggerCallback | CollisionCallback, target?: Object, useCapture?: any): any {
+        const ret = EventTarget.prototype.once.call(this, type, callback, target);
+        this._updateNeedEvent(type);
+        return ret;
     }
 
     /**
      * IEventTarget implementations, they will be overwrote with the same implementation in EventTarget by applyMixins
      */
     public targetOff (keyOrTarget?: TriggerEventType | CollisionEventType | Object): void {
-    }
-
-    public dispatchEvent (event: Event): void {
+        EventTarget.prototype.targetOff.call(this, keyOrTarget);
+        this._updateNeedEvent();
     }
 
     public hasEventListener (key: TriggerEventType | CollisionEventType, callback?: TriggerCallback | CollisionCallback, target?: Object): boolean {
@@ -236,6 +254,8 @@ export class ColliderComponent extends Component implements IEventTarget {
     }
 
     public removeAll (keyOrTarget?: TriggerEventType | CollisionEventType | Object): void {
+        EventTarget.prototype.removeAll.call(this, keyOrTarget);
+        this._updateNeedEvent();
     }
 
     public emit (key: TriggerEventType | CollisionEventType, ...args: any[]): void {
@@ -374,6 +394,31 @@ export class ColliderComponent extends Component implements IEventTarget {
         }
     }
 
+    private _updateNeedEvent (type?: string) {
+        if (this.isValid && this._callbackTable) {
+            if (type !== undefined) {
+                if (type == 'onCollisionEnter' || type == 'onCollisionStay' || type == 'onCollisionExit') {
+                    this._needCollisionEvent = true;
+                } else if (type == 'onTriggerEnter' || type == 'onTriggerStay' || type == 'onTriggerExit') {
+                    this._needTriggerEvent = true;
+                }
+            } else {
+                if (!(this.hasEventListener('onTriggerEnter') || this.hasEventListener('onTriggerStay') || this.hasEventListener('onTriggerExit'))) {
+                    this._needTriggerEvent = false;
+                } else if (!(this.hasEventListener('onCollisionEnter') || this.hasEventListener('onCollisionStay') || this.hasEventListener('onCollisionExit'))) {
+                    this._needCollisionEvent = false;
+                }
+            }
+        }
+    }
 }
 
+// for restore on and off
+const { on, off, once, targetOff, removeAll } = ColliderComponent.prototype;
 applyMixins(ColliderComponent, [CallbacksInvoker, EventTarget]);
+// restore
+ColliderComponent.prototype.on = on;
+ColliderComponent.prototype.off = off;
+ColliderComponent.prototype.once = once;
+ColliderComponent.prototype.targetOff = targetOff;
+ColliderComponent.prototype.removeAll = removeAll;
