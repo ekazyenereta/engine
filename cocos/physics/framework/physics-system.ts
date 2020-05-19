@@ -215,6 +215,7 @@ export class PhysicsSystem extends System {
         }
 
         this._timeSinceLastUpdate = this._timeReset ? 0 : deltaTime;
+        this.physicsWorld.emitEvents();
         director.emit(Director.EVENT_BEFORE_PHYSICS);
         this.physicsWorld.syncSceneToPhysics();
         if (this._useFixedTime) {
@@ -223,7 +224,6 @@ export class PhysicsSystem extends System {
             this.physicsWorld.step(this._deltaTime, this._timeSinceLastUpdate, this._maxSubStep);
         }
         director.emit(Director.EVENT_AFTER_PHYSICS);
-        this.physicsWorld.emitEvents();
         // TODO: 考虑将脏标记重置嵌套在场景同步和物理模拟之间，以减少一次场景同步
         this.physicsWorld.syncSceneToPhysics();
     }
