@@ -18,3 +18,9 @@ var wasmMemory = { buffer: new ArrayBuffer(16 * 1024 * 1024) };
 
 export const BULLET = instantiate(asmLibraryArg, wasmMemory);
 window["BULLET"] = BULLET;
+
+// export const BULLET = await new Promise((resolve, reject) => {
+//     instantiate(asmLibraryArg, wasmMemory).then(() => {
+//         resolve();
+//     });
+// });
